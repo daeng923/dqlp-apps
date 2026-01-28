@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin-custom { animation: spin 1s linear infinite; }
+        body { background: transparent; overflow: hidden; }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="max-w-md mx-auto">
+        <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl border border-slate-50">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-[#0f5132]">Presensi DQLP</h2>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Sistem Validasi Kehadiran</p>
+            </div>
+
+            <div class="bg-emerald-50 border-l-4 border-[#0f5132] p-4 rounded-xl mb-6 text-[12px] text-emerald-900">
+                Lakukan presensi mandiri sebelum divalidasi oleh pengajar.
+            </div>
+
+            <div class="space-y-3">
+                <input id="namaCari" type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-[#0f5132] outline-none text-sm" placeholder="Ketik minimal 3 huruf nama">
+                <button onclick="cari()" class="w-full bg-[#0f5132] text-white py-3 rounded-xl font-bold text-sm shadow-lg hover:opacity-90 transition-all">Cari Nama</button>
+            </div>
+
+            <div id="loading" class="hidden mt-6 text-center">
+                <div class="w-6 h-6 border-2 border-slate-200 border-t-[#0f5132] rounded-full animate-spin-custom mx-auto"></div>
+            </div>
+
+            <div id="list" class="hidden mt-4 border border-slate-50 rounded-xl overflow-hidden divide-y divide-slate-50"></div>
+            <div id="form"></div>
+            
+            <div id="loadingForm" class="hidden mt-6 text-center italic text-xs text-slate-400">
+                Menghubungkan ke formulir...
+            </div>
+        </div>
+    </div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEZySYsRpembWFYcRYhzpuQSkYdCDzxsC5O4SpdYYTOxxmriBT8Ck-SHAUWmOlL2P6ww/exec";
+
+    async function cari() {
+        const q = document.getElementById('namaCari').value.trim();
+        const list = document.getElementById('list');
+        const loader = document.getElementById('loading');
+        
+        if(q.length < 3) return alert('Minimal 3 huruf');
+        
+        list.innerHTML = '';
+        list.classList.add('hidden');
+        loader.classList.remove('hidden');
+
+        try {
+            const r = await fetch(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(q)}`);
+            const j = await r.json();
+            loader.classList.add('hidden');
+            list.classList.remove('hidden');
+
+            if(!j.hasil || j.hasil.length === 0) {
+                list.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">Tidak ditemukan</div>';
+                return;
+            }
+
+            j.hasil.forEach(h => {
+                const d = document.createElement('div');
+                d.className = 'p-4 text-sm hover:bg-emerald-50 cursor-pointer flex justify-between items-center';
+                d.innerHTML = `<span>${h.nama}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>`;
+                d.onclick = () => pilih(h.nip, h.nama);
+                list.appendChild(d);
+            });
+        } catch(e) { 
+            loader.classList.add('hidden');
+            alert('Gagal memuat data.'); 
+        }
+    }
+
+    function pilih(nip, nama) {
+        document.getElementById('list').classList.add('hidden');
+        document.getElementById('form').innerHTML = `
+            <div class="mt-6 p-6 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 text-center">
+                <p class="font-bold text-slate-800 mb-4">${nama}</p>
+                <button onclick="hadir('${nip}','${nama}')" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-bold text-xs mb-2">Hadir</button>
+                <button onclick="izin('${nip}','${nama}')" class="w-full bg-slate-400 text-white py-2 rounded-lg font-bold text-xs">Izin</button>
+                <div id="msg"></div>
+            </div>`;
+    }
+
+    async function hadir(nip, nama) {
+        const kode = prompt('Masukkan kode:');
+        if(!kode) return;
+        document.getElementById('loadingForm').classList.remove('hidden');
+        const r = await fetch(`${API_URL}?action=hadir&nip=${nip}&nama=${nama}&kode=${kode}`);
+        const j = await r.json();
+        if(j.status === 'VALID') window.top.location.href = j.formUrl;
+        else {
+            document.getElementById('loadingForm').classList.add('hidden');
+            document.getElementById('msg').innerHTML = `<p class="text-red-500 text-[10px] mt-2">${j.pesan}</p>`;
+        }
+    }
+
+    async function izin(nip, nama) {
+        document.getElementById('loadingForm').classList.remove('hidden');
+        const r = await fetch(`${API_URL}?action=izin&nip=${nip}&nama=${nama}`);
+        const j = await r.json();
+        if(j.status === 'OK') window.top.location.href = j.formUrl;
+    }
+</script>
+</body>
+</html>
