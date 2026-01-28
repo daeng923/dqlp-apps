@@ -9,13 +9,13 @@
     <style>
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin-custom { animation: spin 1s linear infinite; }
-        body { background: transparent; overflow: hidden; user-select: none; }
+        body { background: transparent; overflow: hidden; user-select: none; -webkit-user-select: none; }
     </style>
 </head>
 <body class="p-4 antialiased">
 
     <div class="max-w-md mx-auto">
-        <div class="bg-white rounded-[2.5rem] p-8">
+        <div class="bg-white rounded-[2.5rem] p-8 shadow-sm">
             <div class="text-center mb-6">
                 <h2 class="text-2xl font-bold text-[#0f5132]">Presensi DQLP</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1 font-semibold">Sistem Validasi Kehadiran</p>
@@ -37,7 +37,7 @@
 
             <div id="loading" class="hidden mt-8 text-center animate-in fade-in">
                 <div class="w-8 h-8 border-4 border-slate-100 border-t-[#0f5132] rounded-full animate-spin-custom mx-auto mb-2"></div>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Mencari Data...</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">Mencari Data...</p>
             </div>
 
             <div id="list" class="hidden mt-6 border border-slate-50 rounded-2xl overflow-hidden divide-y divide-slate-50 shadow-sm shadow-slate-100"></div>
@@ -51,10 +51,9 @@
     </div>
 
 <script>
-    // URL Google Apps Script Anda
     const API_URL = "https://script.google.com/macros/s/AKfycbyEZySYsRpembWFYcRYhzpuQSkYdCDzxsC5O4SpdYYTOxxmriBT8Ck-SHAUWmOlL2P6ww/exec";
 
-    // Proteksi Keamanan: Blokir Klik Kanan di dalam Iframe
+    // PROTEKSI TOTAL: Blokir Klik Kanan & Shortcut di dalam Iframe
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('keydown', function(e) {
         if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.keyCode === 85)) {
@@ -82,7 +81,7 @@
             list.classList.remove('hidden');
 
             if(!j.hasil || j.hasil.length === 0) {
-                list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 italic">Nama tidak ditemukan. Periksa kembali ejaan Anda.</div>';
+                list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 italic">Nama tidak ditemukan.</div>';
                 return;
             }
 
@@ -95,7 +94,7 @@
             });
         } catch(e) { 
             loader.classList.add('hidden');
-            alert('Gagal mengambil data. Periksa koneksi internet Anda.'); 
+            alert('Gagal mengambil data.'); 
         }
     }
 
@@ -105,10 +104,10 @@
             <div class="mt-6 p-6 rounded-[1.5rem] bg-emerald-50/50 border-2 border-dashed border-emerald-100 text-center animate-in zoom-in duration-300">
                 <p class="font-extrabold text-emerald-900 mb-5">${nama}</p>
                 <div class="grid gap-2">
-                    <button onclick="hadir('${nip}','${nama}')" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-all">SAYA HADIR</button>
-                    <button onclick="izin('${nip}','${nama}')" class="w-full bg-slate-400 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-slate-500 transition-all">SAYA IZIN</button>
+                    <button onclick="hadir('${nip}','${nama}')" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-all uppercase tracking-wider text-center">Saya Hadir</button>
+                    <button onclick="izin('${nip}','${nama}')" class="w-full bg-slate-400 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-slate-500 transition-all uppercase tracking-wider text-center">Saya Izin</button>
                 </div>
-                <div id="msg" class="mt-4"></div>
+                <div id="msg" class="mt-4 text-center"></div>
             </div>`;
     }
 
@@ -120,16 +119,15 @@
         try {
             const r = await fetch(`${API_URL}?action=hadir&nip=${nip}&nama=${nama}&kode=${kode}`);
             const j = await r.json();
-            
             if(j.status === 'VALID') {
-                window.top.location.href = j.formUrl; // Redirect halaman utama WordPress
+                window.top.location.href = j.formUrl;
             } else {
                 document.getElementById('loadingForm').classList.add('hidden');
-                document.getElementById('msg').innerHTML = `<div class="bg-red-50 text-red-600 p-3 rounded-lg text-[10px] font-bold uppercase tracking-tight border border-red-100">${j.pesan}</div>`;
+                document.getElementById('msg').innerHTML = `<div class="bg-red-50 text-red-600 p-3 rounded-lg text-[10px] font-bold border border-red-100 text-center">${j.pesan}</div>`;
             }
         } catch(e) {
             document.getElementById('loadingForm').classList.add('hidden');
-            alert('Kesalahan jaringan saat validasi.');
+            alert('Kesalahan jaringan.');
         }
     }
 
