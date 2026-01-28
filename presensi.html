@@ -3,112 +3,148 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Presensi Internal DQLP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @keyframes spin { to { transform: rotate(360deg); } }
         .animate-spin-custom { animation: spin 1s linear infinite; }
-        body { background: transparent; overflow: hidden; }
+        body { background: transparent; overflow: hidden; user-select: none; -webkit-user-select: none; font-family: 'Inter', sans-serif; }
+        .modal-active { display: flex !important; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
-<body class="p-4">
+<body class="p-4 antialiased">
 
     <div class="max-w-md mx-auto">
-        <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl border border-slate-50">
+        <div class="bg-white rounded-[2.5rem] p-8 shadow-sm">
             <div class="text-center mb-6">
                 <h2 class="text-2xl font-bold text-[#0f5132]">Presensi DQLP</h2>
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Sistem Validasi Kehadiran</p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1 font-semibold">Sistem Validasi Kehadiran</p>
             </div>
 
-            <div class="bg-emerald-50 border-l-4 border-[#0f5132] p-4 rounded-xl mb-6 text-[12px] text-emerald-900">
-                Lakukan presensi mandiri sebelum divalidasi oleh pengajar.
+            <div class="bg-emerald-50 border-l-4 border-[#0f5132] p-4 rounded-xl mb-6 text-[12px] text-emerald-900 leading-relaxed">
+                <i class="fa-solid fa-circle-info mr-1 opacity-70"></i> Lakukan presensi mandiri sebelum divalidasi oleh pengajar di kelas.
             </div>
 
             <div class="space-y-3">
-                <input id="namaCari" type="text" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-[#0f5132] outline-none text-sm" placeholder="Ketik minimal 3 huruf nama">
-                <button onclick="cari()" class="w-full bg-[#0f5132] text-white py-3 rounded-xl font-bold text-sm shadow-lg hover:opacity-90 transition-all">Cari Nama</button>
+                <input id="namaCari" type="text" 
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-[#0f5132] outline-none text-sm transition-all" 
+                       placeholder="Ketik nama Anda...">
+                <button onclick="cari()" 
+                        class="w-full bg-[#0f5132] text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-emerald-900/20 hover:opacity-90 active:scale-95 transition-all">
+                    Cari Nama Peserta
+                </button>
             </div>
 
-            <div id="loading" class="hidden mt-6 text-center">
-                <div class="w-6 h-6 border-2 border-slate-200 border-t-[#0f5132] rounded-full animate-spin-custom mx-auto"></div>
+            <div id="loading" class="hidden mt-8 text-center">
+                <div class="w-8 h-8 border-4 border-slate-100 border-t-[#0f5132] rounded-full animate-spin-custom mx-auto mb-2"></div>
+                <p class="text-[10px] text-slate-400 font-bold tracking-widest text-center">MENCARI DATA...</p>
             </div>
 
-            <div id="list" class="hidden mt-4 border border-slate-50 rounded-xl overflow-hidden divide-y divide-slate-50"></div>
+            <div id="list" class="hidden mt-6 border border-slate-50 rounded-2xl overflow-hidden divide-y divide-slate-50 shadow-sm shadow-slate-100"></div>
             <div id="form"></div>
             
-            <div id="loadingForm" class="hidden mt-6 text-center italic text-xs text-slate-400">
-                Menghubungkan ke formulir...
+            <div id="loadingForm" class="hidden mt-8 text-center italic text-xs text-slate-400 animate-pulse">
+                Menghubungkan ke formulir presensi...
+            </div>
+        </div>
+    </div>
+
+    <div id="kodeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-6">
+        <div class="bg-white rounded-[2rem] p-8 max-w-xs w-full shadow-2xl text-center">
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h3 class="font-extrabold text-slate-800 mb-2">Konfirmasi Kehadiran</h3>
+            <p class="text-xs text-slate-500 mb-6 leading-relaxed text-center">Silakan masukkan <b>Kode Presensi</b> yang diberikan oleh pengajar hari ini.</p>
+            
+            <input id="inputKode" type="text" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#0f5132] outline-none text-center font-bold text-lg mb-4 tracking-widest uppercase" placeholder="KODE">
+            
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeModal()" class="py-3 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs uppercase hover:bg-slate-200 transition-all text-center">Batal</button>
+                <button onclick="prosesHadir()" class="py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs uppercase shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all text-center">Validasi</button>
             </div>
         </div>
     </div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyEZySYsRpembWFYcRYhzpuQSkYdCDzxsC5O4SpdYYTOxxmriBT8Ck-SHAUWmOlL2P6ww/exec";
+    let tempUser = { nip: '', nama: '' };
+
+    // Proteksi Keamanan
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+        if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.keyCode === 85)) e.preventDefault();
+    });
 
     async function cari() {
         const q = document.getElementById('namaCari').value.trim();
         const list = document.getElementById('list');
         const loader = document.getElementById('loading');
-        
-        if(q.length < 3) return alert('Minimal 3 huruf');
-        
-        list.innerHTML = '';
-        list.classList.add('hidden');
-        loader.classList.remove('hidden');
+        if(q.length < 3) return alert('Ketik minimal 3 huruf.');
+        list.innerHTML = ''; list.classList.add('hidden'); loader.classList.remove('hidden');
+        document.getElementById('form').innerHTML = '';
 
         try {
             const r = await fetch(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(q)}`);
             const j = await r.json();
-            loader.classList.add('hidden');
-            list.classList.remove('hidden');
-
+            loader.classList.add('hidden'); list.classList.remove('hidden');
             if(!j.hasil || j.hasil.length === 0) {
-                list.innerHTML = '<div class="p-4 text-center text-xs text-slate-400">Tidak ditemukan</div>';
+                list.innerHTML = '<div class="p-6 text-center text-xs text-slate-400 italic">Nama tidak ditemukan.</div>';
                 return;
             }
-
             j.hasil.forEach(h => {
                 const d = document.createElement('div');
-                d.className = 'p-4 text-sm hover:bg-emerald-50 cursor-pointer flex justify-between items-center';
-                d.innerHTML = `<span>${h.nama}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>`;
+                d.className = 'p-4 text-sm font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center transition-colors';
+                d.innerHTML = `<span>${h.nama}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-200"></i>`;
                 d.onclick = () => pilih(h.nip, h.nama);
                 list.appendChild(d);
             });
-        } catch(e) { 
-            loader.classList.add('hidden');
-            alert('Gagal memuat data.'); 
-        }
+        } catch(e) { loader.classList.add('hidden'); alert('Gagal memuat data.'); }
     }
 
     function pilih(nip, nama) {
         document.getElementById('list').classList.add('hidden');
+        tempUser = { nip, nama }; // Simpan data sementara
         document.getElementById('form').innerHTML = `
-            <div class="mt-6 p-6 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 text-center">
-                <p class="font-bold text-slate-800 mb-4">${nama}</p>
-                <button onclick="hadir('${nip}','${nama}')" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-bold text-xs mb-2">Hadir</button>
-                <button onclick="izin('${nip}','${nama}')" class="w-full bg-slate-400 text-white py-2 rounded-lg font-bold text-xs">Izin</button>
-                <div id="msg"></div>
+            <div class="mt-6 p-6 rounded-[1.5rem] bg-emerald-50/50 border-2 border-dashed border-emerald-100 text-center animate-in zoom-in duration-300">
+                <p class="font-extrabold text-emerald-900 mb-5 uppercase tracking-tight text-center">${nama}</p>
+                <div class="grid gap-2">
+                    <button onclick="openModal()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-all uppercase text-center">SAYA HADIR</button>
+                    <button onclick="izin('${nip}','${nama}')" class="w-full bg-slate-400 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-slate-500 transition-all uppercase text-center">SAYA IZIN</button>
+                </div>
+                <div id="msg" class="mt-4 text-center"></div>
             </div>`;
     }
 
-    async function hadir(nip, nama) {
-        const kode = prompt('Masukkan kode:');
-        if(!kode) return;
+    function openModal() { document.getElementById('kodeModal').classList.add('modal-active'); document.getElementById('inputKode').focus(); }
+    function closeModal() { document.getElementById('kodeModal').classList.remove('modal-active'); document.getElementById('inputKode').value = ''; }
+
+    async function prosesHadir() {
+        const kode = document.getElementById('inputKode').value.trim();
+        if(!kode) return alert('Masukkan kode!');
+        
+        closeModal();
         document.getElementById('loadingForm').classList.remove('hidden');
-        const r = await fetch(`${API_URL}?action=hadir&nip=${nip}&nama=${nama}&kode=${kode}`);
-        const j = await r.json();
-        if(j.status === 'VALID') window.top.location.href = j.formUrl;
-        else {
-            document.getElementById('loadingForm').classList.add('hidden');
-            document.getElementById('msg').innerHTML = `<p class="text-red-500 text-[10px] mt-2">${j.pesan}</p>`;
-        }
+        try {
+            const r = await fetch(`${API_URL}?action=hadir&nip=${tempUser.nip}&nama=${tempUser.nama}&kode=${kode}`);
+            const j = await r.json();
+            if(j.status === 'VALID') window.top.location.href = j.formUrl;
+            else {
+                document.getElementById('loadingForm').classList.add('hidden');
+                document.getElementById('msg').innerHTML = `<div class="bg-red-50 text-red-600 p-3 rounded-lg text-[10px] font-bold border border-red-100 text-center">${j.pesan}</div>`;
+            }
+        } catch(e) { document.getElementById('loadingForm').classList.add('hidden'); alert('Kesalahan jaringan.'); }
     }
 
     async function izin(nip, nama) {
         document.getElementById('loadingForm').classList.remove('hidden');
-        const r = await fetch(`${API_URL}?action=izin&nip=${nip}&nama=${nama}`);
-        const j = await r.json();
-        if(j.status === 'OK') window.top.location.href = j.formUrl;
+        try {
+            const r = await fetch(`${API_URL}?action=izin&nip=${nip}&nama=${nama}`);
+            const j = await r.json();
+            if(j.status === 'OK') window.top.location.href = j.formUrl;
+        } catch(e) { document.getElementById('loadingForm').classList.add('hidden'); alert('Kesalahan jaringan.'); }
     }
 </script>
 </body>
