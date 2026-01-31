@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>Presensi Internal DQLP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
+        body { 
+            background-color: #f0ebf8; 
+            font-family: 'Roboto', sans-serif; 
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .gform-card { 
+            background: white; 
+            border-radius: 8px; 
+            border: 1px solid #dadce0; 
+            transition: all 0.3s ease;
+        }
+
+        .gform-header { border-top: 10px solid #673ab7; }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #673ab7;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8 antialiased">
+
+    <div class="max-w-2xl mx-auto space-y-4">
+        
+        <div class="gform-card gform-header p-6 shadow-sm">
+            <h1 class="text-2xl md:text-3xl font-normal text-black">Presensi Internal DQLP</h1>
+            <p class="text-sm mt-3 text-gray-700 leading-relaxed">Pencarian nama dan konfirmasi kehadiran digital civitas universitas.</p>
+            <hr class="mt-4 border-gray-100">
+            <p class="text-[11px] mt-3 text-red-600 font-medium">* Wajib diisi</p>
+        </div>
+
+        <div id="pencarianBox" class="gform-card p-6 shadow-sm animate-fadeIn">
+            <div class="mb-6">
+                <label class="block text-base font-medium text-gray-900 mb-2">Cari Nama Anda <span class="text-red-500">*</span></label>
+                <p class="text-xs text-gray-500 mb-4 text-justify">Ketik nama lengkap atau minimal 3 huruf untuk memunculkan pilihan nama dari database.</p>
+                <input id="namaCari" type="text" autocomplete="off"
+                       class="w-full border-b border-gray-300 focus:border-[#673ab7] focus:border-b-2 outline-none py-2 text-sm transition-all" 
+                       placeholder="Jawaban Anda">
+            </div>
+            
+            <button onclick="cari()" id="btnCari" class="bg-[#673ab7] text-white px-6 py-2 rounded shadow-sm font-medium text-sm hover:bg-[#5e35a6] active:scale-95 transition-all">
+                Cari Nama
+            </button>
+
+            <div id="loading" class="hidden mt-6 flex items-center gap-3 text-xs text-gray-400 italic">
+                <div class="loading-spinner"></div> Mencari data di server...
+            </div>
+            <div id="list" class="hidden mt-6 border rounded-md divide-y shadow-inner bg-gray-50 max-h-60 overflow-y-auto"></div>
+        </div>
+
+        <div id="formSection" class="hidden space-y-4 animate-fadeIn">
+            <div class="gform-card p-6 shadow-sm">
+                <label class="block text-base font-medium text-gray-900 mb-6">Data Identitas <span class="text-[10px] bg-purple-100 text-purple-700 px-2 py-1 rounded ml-2 uppercase">Terkunci</span></label>
+                
+                <div class="space-y-6">
+                    <div class="relative">
+                        <p class="text-xs text-[#673ab7] font-bold mb-1">NAMA LENGKAP</p>
+                        <input id="displayNama" type="text" readonly class="w-full border-b border-gray-100 bg-transparent py-2 text-sm font-medium text-gray-800 outline-none cursor-not-allowed">
+                    </div>
+                    <div class="relative">
+                        <p class="text-xs text-[#673ab7] font-bold mb-1">NIP / NOMOR IDENTITAS</p>
+                        <input id="displayNip" type="text" readonly class="w-full border-b border-gray-100 bg-transparent py-2 text-sm font-medium text-gray-800 outline-none cursor-not-allowed">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button onclick="openModal()" class="bg-[#673ab7] text-white px-10 py-2.5 rounded shadow hover:bg-[#5e35a6] font-medium text-sm transition-all">
+                    Submit Kehadiran
+                </button>
+                <button onclick="location.reload()" class="text-gray-500 text-sm py-2.5 px-4 hover:underline">
+                    Bukan Anda? Cari Kembali
+                </button>
+            </div>
+        </div>
+
+        <div id="successBox" class="hidden gform-card p-10 text-center shadow-sm animate-fadeIn">
+            <div class="mb-4 text-[#673ab7]">
+                <i class="fa-solid fa-circle-check text-7xl"></i>
+            </div>
+            <h2 class="text-2xl font-normal text-black">Presensi Berhasil</h2>
+            <p class="text-sm text-gray-600 mt-2">Terima kasih, jawaban Anda telah direkam di sistem pusat.</p>
+            <button onclick="location.reload()" class="mt-8 text-blue-600 text-sm hover:underline">Kirim jawaban lain</button>
+        </div>
+
+        <div id="loadingForm" class="hidden fixed inset-0 bg-white/80 z-[60] flex flex-col items-center justify-center">
+            <div class="loading-spinner w-12 h-12 border-4 mb-4"></div>
+            <p class="text-xs font-bold text-[#673ab7] tracking-widest animate-pulse">MEMPROSES DATA...</p>
+        </div>
+    </div>
+
+    <div id="kodeModal" class="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 hidden items-center justify-center p-6">
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl scale-100">
+            <h3 class="font-medium text-gray-900 mb-2 text-xl">Validasi Kehadiran</h3>
+            <p class="text-xs text-gray-500 mb-6 leading-relaxed">Masukkan kode 4 digit yang diberikan oleh petugas di lokasi untuk mengaktifkan tombol kirim.</p>
+            
+            <input id="inputKode" type="text" inputmode="numeric" 
+                   class="w-full p-4 bg-gray-50 border-b-2 border-gray-200 focus:border-[#673ab7] text-center font-bold text-2xl mb-6 outline-none transition-all" 
+                   placeholder="****">
+            
+            <div class="flex justify-end items-center gap-6">
+                <button onclick="closeModal()" class="text-gray-500 font-bold text-xs uppercase hover:text-gray-700">Batal</button>
+                <button onclick="prosesHadir()" class="text-[#673ab7] font-bold text-xs uppercase hover:text-purple-900">Validasi & Kirim</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbyc2iLwxu9fPhMWjdtK9W01rcUfzum50aWetwWm92OBh7otKFQAR3HCIjJ-dlgIR6cK/exec";
+        let currentUser = { nip: '', nama: '' };
+
+        async function cari() {
+            const q = document.getElementById('namaCari').value.trim();
+            if(q.length < 3) return alert('Ketik minimal 3 huruf nama Anda.');
+            
+            const list = document.getElementById('list');
+            const loader = document.getElementById('loading');
+            const btn = document.getElementById('btnCari');
+            
+            list.innerHTML = ''; 
+            list.classList.add('hidden'); 
+            loader.classList.remove('hidden');
+            btn.disabled = true;
+
+            try {
+                const r = await fetch(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(q)}`);
+                const j = await r.json();
+                
+                if(!j.hasil || j.hasil.length === 0) {
+                    list.innerHTML = '<div class="p-4 text-sm text-gray-500 italic">Nama tidak ditemukan di database.</div>';
+                } else {
+                    j.hasil.forEach(h => {
+                        const d = document.createElement('div');
+                        d.className = 'p-4 text-sm text-gray-700 hover:bg-purple-50 cursor-pointer flex justify-between items-center transition-colors';
+                        d.innerHTML = `<span>${h.nama}</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-300"></i>`;
+                        d.onclick = () => pilih(h.nip, h.nama);
+                        list.appendChild(d);
+                    });
+                }
+                list.classList.remove('hidden');
+            } catch(e) { 
+                alert('Gagal mengambil data. Periksa koneksi internet Anda.'); 
+            } finally {
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        function pilih(nip, nama) {
+            currentUser = { nip, nama };
+            document.getElementById('pencarianBox').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('displayNama').value = nama;
+            document.getElementById('displayNip').value = nip;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openModal() { 
+            document.getElementById('kodeModal').classList.add('flex'); 
+            document.getElementById('kodeModal').classList.remove('hidden'); 
+            document.getElementById('inputKode').focus();
+        }
+        
+        function closeModal() { 
+            document.getElementById('kodeModal').classList.add('hidden'); 
+            document.getElementById('kodeModal').classList.remove('flex'); 
+        }
+
+        async function prosesHadir() {
+            const kode = document.getElementById('inputKode').value.trim();
+            if(!kode) return alert('Masukkan kode validasi.');
+            
+            closeModal();
+            document.getElementById('loadingForm').classList.remove('hidden');
+
+            try {
+                // 1. Validasi Kode & Ambil Periode
+                const r = await fetch(`${API_URL}?action=cek_kode&kode=${encodeURIComponent(kode)}`);
+                const res = await r.json();
+
+                if(res.status === 'VALID') {
+                    // 2. Kirim Data via POST (no-cors agar stabil)
+                    const formData = new URLSearchParams();
+                    formData.append('nip', currentUser.nip);
+                    formData.append('nama', currentUser.nama);
+                    formData.append('periode', res.periode);
+                    formData.append('status', 'Hadir');
+
+                    await fetch(API_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+                    
+                    // Tampilkan Sukses
+                    document.getElementById('formSection').classList.add('hidden');
+                    document.getElementById('successBox').classList.remove('hidden');
+                } else {
+                    alert(res.pesan);
+                }
+            } catch(e) {
+                alert('Terjadi kendala saat mengirim data. Silakan coba lagi.');
+            } finally {
+                document.getElementById('loadingForm').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
