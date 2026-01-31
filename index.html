@@ -3,47 +3,32 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>Presensi DQLP</title>
+    <title>Presensi Digital DQLP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Desain khusus agar menyatu dengan Iframe WordPress */
-        body { background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-        .btn-primary { background-color: #059669; transition: all 0.2s; }
-        .btn-primary:hover { background-color: #047857; transform: translateY(-1px); }
-        input[readonly] { background-color: #f9fafb; color: #374151; }
-        /* Memastikan teks besar untuk memudahkan senior */
-        .text-senior { font-size: 1.1rem; }
+        body { background: transparent; font-family: 'Segoe UI', Roboto, sans-serif; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .btn-emerald { background-color: #059669; }
+        .btn-emerald:hover { background-color: #047857; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body class="p-2 md:p-4">
 
     <div class="max-w-xl mx-auto space-y-6">
-        
         <div class="bg-white rounded-2xl p-6 border-l-8 border-[#059669] card-shadow">
-            <h1 class="text-2xl font-bold text-slate-800">Sistem Presensi Digital</h1>
-            <p class="text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">Development of Quranic Literacy Program</p>
+            <h1 class="text-2xl font-bold text-slate-800 text-senior">Sistem Presensi Digital</h1>
+            <p class="text-xs text-emerald-600 mt-1 uppercase tracking-widest font-bold">DQLP Universitas Muhammadiyah Malang</p>
         </div>
 
         <div id="pencarianBox" class="bg-white rounded-2xl p-6 card-shadow animate-fadeIn">
-            <label class="block text-lg font-bold text-slate-700 mb-4">Silakan Cari Nama Anda:</label>
-            <div class="relative mb-4">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-                <input id="namaCari" type="text" 
-                       class="w-full pl-10 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-senior transition-all" 
-                       placeholder="Ketik Nama Anda...">
-            </div>
-            <button onclick="cari()" id="btnCari" class="w-full btn-primary text-white py-4 rounded-xl font-bold text-senior shadow-lg shadow-emerald-900/10">
-                Cari Data
-            </button>
-            <div id="loadingSearch" class="hidden mt-6 text-center py-4">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent"></div>
-                <p class="text-xs text-slate-400 mt-2 font-bold tracking-widest uppercase">Mencari di Database...</p>
-            </div>
-            <div id="listHasil" class="hidden mt-4 border border-slate-100 rounded-xl divide-y divide-slate-50 overflow-hidden bg-white"></div>
+            <label class="block text-lg font-bold text-slate-700 mb-4">Cari Nama Anda:</label>
+            <input id="namaCari" type="text" class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-lg mb-4" placeholder="Ketik minimal 3 huruf...">
+            <button onclick="cari()" id="btnCari" class="w-full btn-emerald text-white py-4 rounded-xl font-bold text-lg transition-all active:scale-95">CARI DATA</button>
+            <div id="loadingSearch" class="hidden mt-6 text-center italic text-xs text-slate-400">Mencari di database...</div>
+            <div id="listHasil" class="hidden mt-4 border border-slate-100 rounded-xl divide-y overflow-hidden bg-white"></div>
         </div>
 
         <div id="formSection" class="hidden space-y-4 animate-fadeIn">
@@ -54,79 +39,59 @@
                     </div>
                     <h2 class="text-xl font-bold text-slate-800">Konfirmasi Identitas</h2>
                 </div>
-                
-                <div class="space-y-4">
+                <div class="space-y-4 mb-8">
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Nama Lengkap</p>
                         <p id="txtNama" class="text-lg font-bold text-slate-700"></p>
                     </div>
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">NIP / ID Karyawan</p>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">NIP / ID</p>
                         <p id="txtNip" class="text-lg font-bold text-slate-700"></p>
                     </div>
                 </div>
-
-                <div class="mt-8 space-y-3">
-                    <button onclick="openModal()" class="w-full btn-primary text-white py-4 rounded-2xl font-bold text-senior shadow-xl transition-all">
-                        KLIK UNTUK HADIR
-                    </button>
-                    <button onclick="location.reload()" class="w-full bg-slate-100 text-slate-500 py-3 rounded-2xl font-bold text-sm uppercase tracking-wide">
-                        Bukan Saya
-                    </button>
-                </div>
+                <button onclick="openModal()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-3">KLIK UNTUK HADIR</button>
+                <button onclick="location.reload()" class="w-full text-slate-400 text-xs font-bold uppercase hover:underline">Bukan Saya</button>
             </div>
         </div>
 
         <div id="successBox" class="hidden bg-white rounded-2xl p-12 text-center card-shadow border-t-8 border-emerald-500 animate-fadeIn">
-            <div class="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <i class="fa-solid fa-check-double text-4xl"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-slate-800">Terima Kasih!</h2>
-            <p class="text-slate-500 mt-2 text-senior">Presensi Anda telah berhasil dicatat oleh sistem.</p>
+            <i class="fa-solid fa-circle-check text-6xl text-emerald-500 mb-6"></i>
+            <h2 class="text-2xl font-bold text-slate-800">Berhasil!</h2>
+            <p class="text-slate-500 mt-2">Data presensi Anda telah terekam di pangkalan data kami.</p>
             <button onclick="location.reload()" class="mt-8 text-emerald-600 font-bold hover:underline">Kembali</button>
         </div>
-
     </div>
 
     <div id="kodeModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 hidden items-center justify-center p-6">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl animate-fadeIn">
-            <div class="text-center mb-6">
-                <h3 class="text-xl font-bold text-slate-800">Kode Validasi</h3>
-                <p class="text-sm text-slate-500 mt-1">Masukkan kode 4-digit dari pengajar.</p>
-            </div>
-            <input id="inputKode" type="text" inputmode="numeric" 
-                   class="w-full py-5 bg-slate-50 border-2 border-slate-200 focus:border-emerald-500 rounded-2xl text-center font-bold text-4xl mb-6 outline-none tracking-[0.2em]" 
-                   placeholder="0000">
+        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full animate-fadeIn shadow-2xl">
+            <h3 class="text-xl font-bold text-slate-800 text-center mb-6">Kode Validasi</h3>
+            <input id="inputKode" type="text" inputmode="numeric" class="w-full py-5 bg-slate-50 border-2 border-slate-200 focus:border-emerald-500 rounded-2xl text-center font-bold text-4xl mb-6 outline-none tracking-[0.2em]" placeholder="****">
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="closeModal()" class="py-4 bg-slate-100 text-slate-500 font-bold rounded-xl uppercase text-xs">Batal</button>
-                <button onclick="prosesSimpan()" class="py-4 btn-primary text-white font-bold rounded-xl uppercase text-xs">Validasi</button>
+                <button onclick="closeModal()" class="py-4 text-slate-400 font-bold uppercase text-xs">Batal</button>
+                <button onclick="prosesSimpan()" class="py-4 btn-emerald text-white font-bold rounded-xl uppercase text-xs">Validasi</button>
             </div>
         </div>
     </div>
 
     <script>
-        /* Tetapkan API_URL Anda */
         const API_URL = "https://script.google.com/macros/s/AKfycbyc2iLwxu9fPhMWjdtK9W01rcUfzum50aWetwWm92OBh7otKFQAR3HCIjJ-dlgIR6cK/exec";
         let userAktif = { nip: '', nama: '' };
 
         async function cari() {
             const nama = document.getElementById('namaCari').value.trim();
             if(nama.length < 3) return alert('Masukkan minimal 3 huruf.');
-            
             const list = document.getElementById('listHasil');
             const loader = document.getElementById('loadingSearch');
             list.innerHTML = ''; list.classList.add('hidden'); loader.classList.remove('hidden');
-
             try {
                 const response = await fetch(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(nama)}`);
                 const data = await response.json();
-                
-                if(!data.hasil || data.hasil.length === 0) {
+                if(data.hasil.length === 0) {
                     list.innerHTML = '<div class="p-6 text-center text-slate-400 italic">Nama tidak ditemukan.</div>';
                 } else {
                     data.hasil.forEach(item => {
                         const div = document.createElement('div');
-                        div.className = 'p-5 text-senior font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center transition-all';
+                        div.className = 'p-5 text-lg font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center transition-all';
                         div.innerHTML = `<span>${item.nama}</span> <i class="fa-solid fa-chevron-right text-emerald-200"></i>`;
                         div.onclick = () => {
                             userAktif = item;
@@ -151,23 +116,22 @@
             if(!kodeVal) return;
             closeModal();
             document.body.style.opacity = "0.5";
-
             try {
                 const v = await fetch(`${API_URL}?action=cek_kode&kode=${encodeURIComponent(kodeVal)}`);
                 const resV = await v.json();
-
                 if(resV.status === 'VALID') {
-                    const formBody = new URLSearchParams();
-                    formBody.append('nip', userAktif.nip);
-                    formBody.append('nama', userAktif.nama);
-                    formBody.append('kode', kodeVal);
-
-                    await fetch(API_URL, { method: 'POST', body: formBody, mode: 'no-cors' });
-                    
-                    document.getElementById('formSection').classList.add('hidden');
-                    document.getElementById('successBox').classList.remove('hidden');
+                    // Simpan via GET agar bisa membaca response JSON (Anti-Duplikasi)
+                    const resSimpan = await fetch(`${API_URL}?action=simpan_hadir&nip=${userAktif.nip}&nama=${encodeURIComponent(userAktif.nama)}&kode=${kodeVal}`);
+                    const hasil = await resSimpan.json();
+                    if(hasil.status === 'SUCCESS') {
+                        document.getElementById('formSection').classList.add('hidden');
+                        document.getElementById('successBox').classList.remove('hidden');
+                    } else {
+                        // Jika DUPLIKAT, tampilkan pesan akademik
+                        alert(hasil.pesan);
+                    }
                 } else { alert(resV.pesan); }
-            } catch(e) { alert('Terjadi kesalahan.'); }
+            } catch(e) { alert('Terjadi kesalahan sinkronisasi.'); }
             finally { document.body.style.opacity = "1"; }
         }
     </script>
