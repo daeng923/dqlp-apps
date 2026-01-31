@@ -25,9 +25,9 @@
         </div>
 
         <div id="pencarianBox" class="bg-white rounded-2xl p-6 shadow-lg animate-fadeIn">
-            <label class="block text-lg font-bold text-slate-700 mb-4">Cari Nama Anda:</label>
-            <input id="namaCari" type="text" class="w-full px-5 py-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 mb-4" placeholder="Ketik Nama...">
-            <button onclick="cari()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold shadow-lg">CARI DATA</button>
+            <label class="block text-lg font-bold text-slate-700 mb-4">Cari Nama Lengkap:</label>
+            <input id="namaCari" type="text" class="w-full px-5 py-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 mb-4" placeholder="Ketik minimal 3 huruf...">
+            <button onclick="cari()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold shadow-lg text-lg">CARI DATA</button>
             <div id="loadingSearch" class="hidden mt-6 text-center">
                 <div class="loader mx-auto"></div>
             </div>
@@ -35,20 +35,31 @@
         </div>
 
         <div id="formSection" class="hidden bg-white rounded-2xl p-8 shadow-lg text-center animate-fadeIn">
-            <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-address-card text-3xl"></i></div>
-            <h2 class="text-xl font-bold text-slate-800 mb-6">Konfirmasi Identitas</h2>
-            <div class="space-y-3 text-left mb-8">
-                <div class="bg-slate-50 p-4 rounded-xl border"><p class="text-[10px] text-slate-400 font-bold uppercase">Nama</p><p id="txtNama" class="text-lg font-bold text-slate-700"></p></div>
-                <div class="bg-slate-50 p-4 rounded-xl border"><p class="text-[10px] text-slate-400 font-bold uppercase">NIP</p><p id="txtNip" class="text-lg font-bold text-slate-700"></p></div>
+            <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-user-check text-3xl"></i></div>
+            <h2 class="text-xl font-bold text-slate-800 mb-6">Konfirmasi Kehadiran</h2>
+            
+            <div class="space-y-3 text-left mb-6 text-sm">
+                <div class="bg-slate-50 p-4 rounded-xl border"><p class="text-[10px] text-slate-400 font-bold uppercase">Nama</p><p id="txtNama" class="font-bold text-slate-700"></p></div>
+                <div class="bg-slate-50 p-4 rounded-xl border"><p class="text-[10px] text-slate-400 font-bold uppercase">NIP</p><p id="txtNip" class="font-bold text-slate-700"></p></div>
             </div>
-            <button onclick="openModal()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4">PRESENSI SEKARANG</button>
-            <button onclick="location.reload()" class="text-slate-400 text-xs font-bold uppercase hover:text-emerald-600">Bukan Saya</button>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <button onclick="setMode('HADIR')" id="btnModeHadir" class="py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500 text-white font-bold transition-all">HADIR</button>
+                <button onclick="setMode('IZIN')" id="btnModeIzin" class="py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all">IZIN</button>
+            </div>
+
+            <div id="izinBox" class="hidden mb-6 animate-fadeIn">
+                <textarea id="catatanIzin" class="w-full p-4 bg-amber-50 border border-amber-200 rounded-xl outline-none text-sm" placeholder="Tuliskan alasan izin (Sakit/Dinas/Lainnya)..."></textarea>
+            </div>
+
+            <button onclick="openModal()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4 uppercase tracking-widest">Lanjutkan</button>
+            <button onclick="location.reload()" class="text-slate-400 text-xs font-bold uppercase hover:text-emerald-600">Bukan Nama Saya</button>
         </div>
 
         <div id="successBox" class="hidden bg-white rounded-2xl p-12 text-center shadow-lg border-t-8 border-emerald-500 animate-fadeIn">
             <i class="fa-solid fa-circle-check text-6xl text-emerald-500 mb-6"></i>
-            <h2 class="text-2xl font-bold text-slate-800">Berhasil!</h2>
-            <p class="text-slate-500 mt-2">Data presensi Anda telah terekam di pangkalan data pusat.</p>
+            <h2 class="text-2xl font-bold text-slate-800">Terekam!</h2>
+            <p class="text-slate-500 mt-2">Data Anda telah resmi tercatat di pangkalan data pusat.</p>
             <button onclick="location.reload()" class="mt-8 bg-slate-100 px-8 py-3 rounded-full font-bold text-sm">Tutup</button>
         </div>
     </div>
@@ -58,13 +69,13 @@
             <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-circle-exclamation text-4xl"></i></div>
             <h3 class="text-xl font-bold text-slate-800 mb-2">Informasi Sistem</h3>
             <p id="notifMsg" class="text-slate-500 text-sm leading-relaxed"></p>
-            <button onclick="closeNotif()" class="mt-8 w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-xs tracking-widest">Tutup</button>
+            <button onclick="closeNotif()" class="mt-8 w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-xs">Tutup</button>
         </div>
     </div>
 
     <div id="kodeModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden items-center justify-center p-6">
         <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-fadeIn text-center">
-            <h3 class="text-xl font-bold mb-6">Kode Validasi</h3>
+            <h3 class="text-xl font-bold mb-6">Verifikasi Kode</h3>
             <input id="inputKode" type="text" inputmode="numeric" class="w-full py-5 bg-slate-50 border-2 rounded-2xl text-center font-bold text-4xl mb-8 outline-none tracking-widest" placeholder="****">
             <div class="grid grid-cols-2 gap-4"><button onclick="closeModal()" class="py-4 text-slate-400 font-bold uppercase text-xs">Batal</button><button onclick="prosesSimpan()" class="py-4 btn-emerald text-white font-bold rounded-xl uppercase text-xs">Validasi</button></div>
         </div>
@@ -72,27 +83,44 @@
 
     <div id="loadingOverlay" class="hidden fixed inset-0 bg-white/95 z-[200] flex flex-col items-center justify-center">
         <div class="loader w-16 h-16 border-8 mb-6"></div>
-        <p class="text-[10px] font-bold text-emerald-800 tracking-widest uppercase animate-pulse">Sinkronisasi Data...</p>
+        <p class="text-[10px] font-bold text-emerald-800 tracking-widest uppercase animate-pulse">Menghubungkan ke Server...</p>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyc2iLwxu9fPhMWjdtK9W01rcUfzum50aWetwWm92OBh7otKFQAR3HCIjJ-dlgIR6cK/exec"; //
+        const API_URL = "https://script.google.com/macros/s/AKfycbyc2iLwxu9fPhMWjdtK9W01rcUfzum50aWetwWm92OBh7otKFQAR3HCIjJ-dlgIR6cK/exec";
         let userAktif = { nip: '', nama: '' };
+        let currentStatus = 'HADIR';
+
+        function setMode(mode) {
+            currentStatus = mode;
+            const btnH = document.getElementById('btnModeHadir');
+            const btnI = document.getElementById('btnModeIzin');
+            const box = document.getElementById('izinBox');
+            if(mode === 'HADIR') {
+                btnH.className = 'py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500 text-white font-bold transition-all';
+                btnI.className = 'py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all';
+                box.classList.add('hidden');
+            } else {
+                btnI.className = 'py-3 rounded-xl border-2 border-amber-500 bg-amber-500 text-white font-bold transition-all';
+                btnH.className = 'py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all';
+                box.classList.remove('hidden');
+            }
+        }
 
         async function cari() {
             const nama = document.getElementById('namaCari').value.trim();
-            if(nama.length < 3) return showNotif('Ketik minimal 3 huruf.');
+            if(nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
             const list = document.getElementById('listHasil');
             const loader = document.getElementById('loadingSearch');
             list.innerHTML = ''; list.classList.add('hidden'); loader.classList.remove('hidden');
             try {
                 const r = await fetch(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(nama)}`);
                 const j = await r.json();
-                if(j.hasil.length === 0) { list.innerHTML = '<div class="p-6 text-center text-slate-400 italic">Tidak ditemukan.</div>'; }
+                if(j.hasil.length === 0) { list.innerHTML = '<div class="p-6 text-center text-slate-400 italic">Nama tidak ditemukan.</div>'; }
                 else {
                     j.hasil.forEach(item => {
                         const d = document.createElement('div');
-                        d.className = 'p-5 text-lg font-semibold hover:bg-emerald-50 cursor-pointer flex justify-between';
+                        d.className = 'p-5 text-base font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center';
                         d.innerHTML = `<span>${item.nama}</span> <i class="fa-solid fa-angle-right text-emerald-200"></i>`;
                         d.onclick = () => { userAktif = item; document.getElementById('pencarianBox').classList.add('hidden'); document.getElementById('formSection').classList.remove('hidden'); document.getElementById('txtNama').innerText = item.nama; document.getElementById('txtNip').innerText = item.nip; };
                         list.appendChild(d);
@@ -109,6 +137,7 @@
 
         async function prosesSimpan() {
             const kode = document.getElementById('inputKode').value.trim();
+            const catatan = document.getElementById('catatanIzin').value.trim();
             if(!kode) return;
             closeModal();
             document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -116,12 +145,12 @@
                 const v = await fetch(`${API_URL}?action=cek_kode&kode=${encodeURIComponent(kode)}`);
                 const vr = await v.json();
                 if(vr.status === 'VALID') {
-                    const s = await fetch(`${API_URL}?action=simpan_hadir&nip=${userAktif.nip}&nama=${encodeURIComponent(userAktif.nama)}&kode=${kode}`); //
+                    const s = await fetch(`${API_URL}?action=simpan_hadir&nip=${userAktif.nip}&nama=${encodeURIComponent(userAktif.nama)}&kode=${kode}&status=${currentStatus}&catatan=${encodeURIComponent(catatan)}`);
                     const res = await s.json();
                     if(res.status === 'SUCCESS') { document.getElementById('formSection').classList.add('hidden'); document.getElementById('successBox').classList.remove('hidden'); }
-                    else { showNotif(res.pesan); } // Menampilkan pesan jam & tanggal
+                    else { showNotif(res.pesan); }
                 } else { showNotif(vr.pesan); }
-            } catch(e) { showNotif('Kesalahan sinkronisasi.'); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
+            } catch(e) { showNotif('Kesalahan sinkronisasi data.'); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
         }
     </script>
 </body>
