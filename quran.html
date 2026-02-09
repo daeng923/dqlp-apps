@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DQLP Reader - Fix Total Surah 3-7</title>
+    <title>DQLP Reader - Auto Sync Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -14,29 +14,29 @@
 <body class="bg-slate-50 min-h-screen pb-20">
 
     <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="font-bold text-xl text-green-700 cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal uppercase tracking-tighter">Reader</span></h1>
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center text-green-700">
+            <h1 class="font-bold text-xl cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal">Reader</span></h1>
             <div id="navAction" class="hidden">
-                <button onclick="showSurahList()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95">← Daftar Surat</button>
+                <button onclick="showSurahList()" class="bg-slate-100 hover:bg-green-600 hover:text-white text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-all">← Kembali</button>
             </div>
         </div>
     </nav>
 
     <main class="max-w-6xl mx-auto px-4 mt-8">
         <section class="mb-8 max-w-2xl mx-auto">
-            <div id="emailSection" class="hidden bg-green-50 p-4 rounded-2xl border border-green-100 flex justify-between items-center">
-                <span class="text-sm text-green-800 font-medium">Aktif: <b id="displayEmail"></b></span>
-                <button onclick="logout()" class="text-xs text-red-500 font-bold underline">Ganti Akun & Reset Cache</button>
+            <div id="emailSection" class="hidden bg-green-50 p-4 rounded-2xl border border-green-100 flex justify-between items-center shadow-sm">
+                <span class="text-sm text-green-800 font-medium">Cloud Sync: <b id="displayEmail"></b></span>
+                <button onclick="logout()" class="text-xs text-red-500 font-bold underline">Ganti Device/User</button>
             </div>
             <div id="loginSection" class="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3 shadow-sm">
                 <input id="inputEmail" type="email" placeholder="Email UMM..." class="flex-1 p-3 rounded-xl border-none text-sm outline-none bg-white focus:ring-2 focus:ring-blue-400">
-                <button onclick="setIdentity()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow hover:bg-blue-700">Simpan</button>
+                <button onclick="setIdentity()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 transition-all">Aktifkan Cloud</button>
             </div>
         </section>
 
         <div id="surahListView">
             <div class="max-w-md mx-auto mb-10">
-                <input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="Cari nama surat (contoh: Ali 'Imran)..." class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="Cari nama surat..." class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-green-500 outline-none">
             </div>
             <div id="gridSurah" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
@@ -52,7 +52,7 @@
     </main>
 
     <script>
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx_dD9_MPOFtF9e9iq1GHohCoiZ4d1DkZYdauwYvDKqKvnhllog5ixhQQq2q8P6PnVXYQ/exec"; 
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwRE5duyIdOUHL2fiGPUU69NfblrA71-RhNKFgLWoax2t7gdfEcIa3nu1mk-wAu-PYvSw/exec"; 
         let USER_EMAIL = localStorage.getItem('dqlp_email') || "";
         let allSurahs = [];
 
@@ -69,12 +69,9 @@
             document.getElementById('surahListView').classList.remove('hidden');
             document.getElementById('readerView').classList.add('hidden');
             document.getElementById('navAction').classList.add('hidden');
-
             const cachedList = localStorage.getItem('surah_list_main');
-            if (cachedList) {
-                allSurahs = JSON.parse(cachedList);
-                renderGrid(allSurahs);
-            } else {
+            if (cachedList) { allSurahs = JSON.parse(cachedList); renderGrid(allSurahs); } 
+            else {
                 const res = await (await fetch('https://equran.id/api/v2/surat')).json();
                 allSurahs = res.data;
                 localStorage.setItem('surah_list_main', JSON.stringify(allSurahs));
@@ -83,17 +80,11 @@
         }
 
         function renderGrid(data) {
-            const grid = document.getElementById('gridSurah');
-            grid.innerHTML = data.map(s => `
+            document.getElementById('gridSurah').innerHTML = data.map(s => `
                 <div onclick="loadSurah(${s.nomor})" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-green-400 hover:shadow-lg transition-all cursor-pointer flex justify-between items-center group">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-green-50 text-green-700 rounded-xl flex items-center justify-center font-bold group-hover:bg-green-600 group-hover:text-white transition-all">
-                            ${s.nomor}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-800">${s.namaLatin}</h3>
-                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-widest">${s.arti} • ${s.jumlahAyat} Ayat</p>
-                        </div>
+                        <div class="w-10 h-10 bg-green-50 text-green-700 rounded-xl flex items-center justify-center font-bold group-hover:bg-green-600 group-hover:text-white transition-all">${s.nomor}</div>
+                        <div><h3 class="font-bold text-slate-800">${s.namaLatin}</h3><p class="text-[10px] text-slate-400 font-medium uppercase tracking-widest">${s.arti} • ${s.jumlahAyat} Ayat</p></div>
                     </div>
                     <div class="text-2xl font-arabic text-green-700">${s.nama}</div>
                 </div>
@@ -110,38 +101,45 @@
             document.getElementById('readerView').classList.remove('hidden');
             document.getElementById('navAction').classList.remove('hidden');
             const container = document.getElementById('ayatContainer');
-            container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold text-lg">Membuka Mushaf...</div>';
+            container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold">Sinkronisasi Cloud...</div>';
             window.scrollTo(0,0);
 
+            // 1. Ambil data surah (Cache or API)
             const cacheKey = `surah_data_${num}`;
-            const cachedSurah = localStorage.getItem(cacheKey);
-
-            if (cachedSurah) {
-                renderAyat(JSON.parse(cachedSurah), num);
-            } else {
-                try {
-                    const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
-                    localStorage.setItem(cacheKey, JSON.stringify(res.data));
-                    renderAyat(res.data, num);
-                } catch (e) { container.innerHTML = "Gagal memuat ayat."; }
+            let surahData = JSON.parse(localStorage.getItem(cacheKey));
+            if (!surahData) {
+                const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
+                surahData = res.data;
+                localStorage.setItem(cacheKey, JSON.stringify(surahData));
             }
+
+            // 2. Tarik Bookmark dari Cloud untuk User ini (SINKRONISASI DEVICE LAIN)
+            if (USER_EMAIL) {
+                try {
+                    const cloudRes = await fetch(`${GAS_WEBAPP_URL}?email=${USER_EMAIL}&surahNum=${num}`);
+                    const history = await cloudRes.json();
+                    history.forEach(row => {
+                        const key = `mark_${num}_${row[5]}`;
+                        if (row[2] === "Selesai Baca") localStorage.setItem(key, "true");
+                        else localStorage.removeItem(key);
+                    });
+                } catch (e) { console.error("Cloud Pull Failed"); }
+            }
+
+            renderAyat(surahData, num);
         }
 
         function renderAyat(data, surahNum) {
             document.getElementById('surahTitle').innerText = data.namaLatin;
             document.getElementById('surahDesc').innerText = `${data.arti} • ${data.tempatTurun} • ${data.jumlahAyat} Ayat`;
             document.getElementById('bgSurahName').innerText = data.nama;
-
-            const container = document.getElementById('ayatContainer');
-            // Menghapus tanda petik dari nama latin agar tidak merusak fungsi onclick
             const safeSuratName = data.namaLatin.replace(/'/g, "\\'");
 
-            container.innerHTML = data.ayat.map(item => {
+            document.getElementById('ayatContainer').innerHTML = data.ayat.map(item => {
                 const storageKey = `mark_${surahNum}_${item.nomorAyat}`;
                 const isMarked = localStorage.getItem(storageKey) === "true";
-                
                 return `
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group hover:shadow-md transition-all duration-300">
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group transition-all duration-300">
                         <button onclick="handleToggle('${safeSuratName}', ${item.nomorAyat}, ${surahNum})" 
                                 id="btn_${surahNum}_${item.nomorAyat}"
                                 class="absolute top-6 left-6 p-2 transition-all ${isMarked ? 'text-yellow-500' : 'text-slate-200 hover:text-yellow-400'}">
@@ -149,66 +147,45 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                             </svg>
                         </button>
-                        <div class="flex flex-col gap-8">
-                            <div class="text-right">
-                                <p class="text-4xl font-arabic text-slate-800 leading-relaxed mb-6" dir="rtl">
-                                    ${item.teksArab}
-                                    <span class="inline-flex items-center justify-center w-10 h-10 text-[10px] border border-slate-200 rounded-full mr-3 text-slate-400 font-inter leading-none">${item.nomorAyat}</span>
-                                </p>
-                                <div class="flex justify-end">
-                                    <audio controls preload="none" class="h-8 opacity-40 hover:opacity-100 transition-opacity">
-                                        <source src="${item.audio['05']}" type="audio/mpeg">
-                                    </audio>
-                                </div>
-                            </div>
-                            <p class="text-slate-500 text-sm italic border-t pt-6 leading-loose font-medium font-inter">"${item.teksIndonesia}"</p>
+                        <div class="flex flex-col gap-6 text-right">
+                            <p class="text-4xl font-arabic text-slate-800 leading-relaxed mb-6" dir="rtl">${item.teksArab} <span class="text-[10px] text-slate-400 border rounded-full px-2">${item.nomorAyat}</span></p>
+                            <audio controls preload="none" class="h-8 opacity-40 ml-auto"><source src="${item.audio['05']}" type="audio/mpeg"></audio>
+                            <p class="text-left text-slate-500 text-sm italic border-t pt-4">"${item.teksIndonesia}"</p>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
         async function handleToggle(suratName, ayatNum, surahNum) {
-            const btn = document.getElementById(`btn_${surahNum}_${ayatNum}`);
-            const icon = document.getElementById(`icon_${surahNum}_${ayatNum}`);
             const storageKey = `mark_${surahNum}_${ayatNum}`;
             const currentlyMarked = localStorage.getItem(storageKey) === "true";
-            let actionType = currentlyMarked ? "delete" : "save";
+            const actionType = currentlyMarked ? "delete" : "save";
 
-            if (currentlyMarked) {
-                localStorage.removeItem(storageKey);
-                icon.setAttribute('fill', 'none');
-                btn.classList.replace('text-yellow-500', 'text-slate-200');
-            } else {
-                localStorage.setItem(storageKey, "true");
-                icon.setAttribute('fill', 'currentColor');
-                btn.classList.replace('text-slate-200', 'text-yellow-500');
-            }
+            if (currentlyMarked) localStorage.removeItem(storageKey);
+            else localStorage.setItem(storageKey, "true");
+            
+            // Re-render UI
+            document.getElementById(`icon_${surahNum}_${ayatNum}`).setAttribute('fill', currentlyMarked ? 'none' : 'currentColor');
+            document.getElementById(`btn_${surahNum}_${ayatNum}`).classList.toggle('text-yellow-500');
+            document.getElementById(`btn_${surahNum}_${ayatNum}`).classList.toggle('text-slate-200');
 
             if (USER_EMAIL) {
-                btn.classList.add('animate-pulse');
                 try {
                     await fetch(GAS_WEBAPP_URL, {
                         method: 'POST', mode: 'no-cors',
-                        body: JSON.stringify({ email: USER_EMAIL, surat: suratName, ayat: ayatNum, action: actionType })
+                        body: JSON.stringify({ email: USER_EMAIL, surat: suratName, ayat: ayatNum, surahNum: surahNum, action: actionType })
                     });
-                } catch (e) { console.error("Cloud Sync Failed"); }
-                finally { btn.classList.remove('animate-pulse'); }
+                } catch (e) { }
             }
         }
 
         function setIdentity() {
             const email = document.getElementById('inputEmail').value.trim();
             if (email.includes('@')) { localStorage.setItem('dqlp_email', email); location.reload(); }
-            else { alert("Gunakan email UMM yang valid!"); }
+            else alert("Email tidak valid!");
         }
 
-        function logout() { 
-            if(confirm("Membersihkan cache akan memperbaiki masalah bookmark pada surah 3-7. Lanjutkan?")) {
-                localStorage.clear(); 
-                location.reload(); 
-            }
-        }
+        function logout() { if(confirm("Bersihkan cache device ini?")) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
