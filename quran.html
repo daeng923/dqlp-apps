@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DQLP Reader - UMM</title>
+    <title>DQLP Reader - Background Audio Ready</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
         .font-arabic { font-family: 'Amiri', serif; line-height: 2.8; }
-        .last-read-box { border: 2px solid #16a34a !important; background-color: #f0fdf4; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .last-read-box { border: 2px solid #16a34a !important; background-color: #f0fdf4; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .hidden-element { display: none !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-20">
@@ -17,8 +18,12 @@
     <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center text-green-700">
             <h1 class="font-bold text-xl cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal">Reader</span></h1>
-            <div id="navAction" class="hidden">
-                <button onclick="showSurahList()" class="bg-slate-100 hover:bg-green-600 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition-all">← Daftar Surat</button>
+            <div id="navAction" class="hidden flex items-center gap-2">
+                <div class="flex bg-slate-100 rounded-lg p-1 gap-1 border">
+                    <button id="toggleAudioBtn" onclick="toggleDisplay('audio-wrap')" class="px-3 py-1 text-[10px] font-bold uppercase rounded bg-green-600 text-white transition-all">Audio</button>
+                    <button id="toggleTransBtn" onclick="toggleDisplay('trans-wrap')" class="px-3 py-1 text-[10px] font-bold uppercase rounded bg-green-600 text-white transition-all">Arti</button>
+                </div>
+                <button onclick="showSurahList()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md">←</button>
             </div>
         </div>
     </nav>
@@ -26,25 +31,21 @@
     <main class="max-w-6xl mx-auto px-4 mt-8">
         <section class="mb-8 max-w-2xl mx-auto">
             <div id="emailSection" class="hidden space-y-4">
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
-                    <span class="text-sm font-medium">User: <b class="text-green-700" id="displayEmail"></b></span>
-                    <button onclick="logout()" class="text-xs text-red-500 font-bold underline">Ganti Akun</button>
-                </div>
-                
                 <div id="resumeCard" class="hidden bg-green-600 p-5 rounded-2xl text-white shadow-lg flex justify-between items-center cursor-pointer hover:bg-green-700 transition-all" onclick="resumeReading()">
                     <div>
-                        <p class="text-[10px] uppercase font-bold opacity-80 tracking-wider">Lanjutkan Bacaan Terakhir:</p>
-                        <h3 id="resumeText" class="font-bold text-lg">Memuat...</h3>
+                        <p class="text-[10px] uppercase font-bold opacity-80 tracking-widest">Lanjutkan Bacaan Terakhir:</p>
+                        <h3 id="resumeText" class="font-bold text-lg italic">Memuat progres...</h3>
                     </div>
-                    <div class="bg-white/20 p-2 rounded-full animate-pulse">➔</div>
+                    <div class="bg-white/20 p-2 rounded-full animate-bounce">➔</div>
                 </div>
+                <div class="text-right"><button onclick="logout()" class="text-[10px] text-red-500 font-bold underline uppercase">Ganti Akun</button></div>
             </div>
 
-            <div id="loginSection" class="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm text-center">
-                <p class="text-xs font-bold text-blue-800 mb-4 uppercase tracking-widest">Akses Program Quranic Literacy</p>
+            <div id="loginSection" class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm text-center">
+                <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-[0.2em]">Akses Program DQLP</p>
                 <div class="flex gap-2">
-                    <input id="inputEmail" type="email" placeholder="Email UMM Mahasiswa..." class="flex-1 p-3 rounded-xl border-none text-sm outline-none bg-white">
-                    <button onclick="setIdentity()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 transition-all">Masuk</button>
+                    <input id="inputEmail" type="email" placeholder="Email UMM Mahasiswa..." class="flex-1 p-3 rounded-xl border bg-slate-50 text-sm outline-none">
+                    <button onclick="setIdentity()" class="bg-green-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md">Masuk</button>
                 </div>
             </div>
         </section>
@@ -64,15 +65,16 @@
     </main>
 
     <script>
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwigazrT7cI6nSp25XdyWA3Ec6kwE0ixLMdCxemJP_jW1a9NdoSZPzGV-QWWPaPIv63mw/exec"; 
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzWz56Lv8CFB14WijvMlgXNF7Bz_T6wXKqjaio9KW7Ujt7KuEOdXChm_aNbm7NIlIx6HQ/exec"; 
         let USER_EMAIL = localStorage.getItem('dqlp_email') || "";
         let LAST_READ_DATA = null;
+        let showAudio = true;
+        let showTrans = true;
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (USER_EMAIL) {
-                document.getElementById('displayEmail').innerText = USER_EMAIL;
-                document.getElementById('emailSection').classList.remove('hidden');
                 document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('emailSection').classList.remove('hidden');
                 await fetchLastRead();
             }
             showSurahList();
@@ -86,7 +88,7 @@
                     document.getElementById('resumeCard').classList.remove('hidden');
                     document.getElementById('resumeText').innerText = `${LAST_READ_DATA.sName} - Ayat ${LAST_READ_DATA.aNum}`;
                 }
-            } catch (e) { console.log("Riwayat baru akan dibuat setelah Anda membaca."); }
+            } catch (e) { console.log("Belum ada riwayat."); }
         }
 
         async function showSurahList() {
@@ -96,20 +98,13 @@
             const res = await (await fetch('https://equran.id/api/v2/surat')).json();
             
             document.getElementById('gridSurah').innerHTML = res.data.map(s => `
-                <div onclick="loadSurah(${s.nomor})" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-green-400 cursor-pointer flex justify-between items-center group transition-all">
+                <div onclick="loadSurah(${s.nomor})" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-green-400 cursor-pointer flex justify-between items-center transition-all">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-green-50 text-green-700 rounded-xl flex items-center justify-center font-bold">${s.nomor}</div>
-                        <div><h3 class="font-bold text-slate-800">${s.namaLatin}</h3><p class="text-[10px] text-slate-400 uppercase font-medium">${s.jumlahAyat} Ayat</p></div>
+                        <div><h3 class="font-bold text-slate-800">${s.namaLatin}</h3><p class="text-[10px] text-slate-400 font-medium uppercase">${s.jumlahAyat} Ayat</p></div>
                     </div>
                     <div class="text-2xl font-arabic text-green-700">${s.nama}</div>
-                </div>
-            `).join('');
-        }
-
-        function resumeReading() {
-            if (LAST_READ_DATA) {
-                loadSurah(LAST_READ_DATA.sNum, LAST_READ_DATA.aNum);
-            }
+                </div>`).join('');
         }
 
         async function loadSurah(num, scrollToAyat = null) {
@@ -120,59 +115,93 @@
             container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold text-lg">Membuka Mushaf...</div>';
             window.scrollTo(0,0);
 
-            try {
-                const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
-                const data = res.data;
-                document.getElementById('surahTitle').innerText = data.namaLatin;
-                document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`;
-                document.getElementById('bgSurahName').innerText = data.nama;
-                const safeSuratName = data.namaLatin.replace(/'/g, "\\'");
+            const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
+            const data = res.data;
+            document.getElementById('surahTitle').innerText = data.namaLatin;
+            document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`;
+            document.getElementById('bgSurahName').innerText = data.nama;
+            const safeSuratName = data.namaLatin.replace(/'/g, "\\'");
 
-                container.innerHTML = data.ayat.map(item => {
-                    const isLast = scrollToAyat && String(item.nomorAyat) === String(scrollToAyat);
-                    return `
-                        <div id="ayat-${item.nomorAyat}" class="bg-white p-8 rounded-3xl border ${isLast ? 'last-read-box' : 'border-slate-100'} relative transition-all duration-300">
-                            <div class="text-right">
-                                <p class="text-4xl font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="text-sm border rounded-full px-2 text-slate-400 font-sans">${item.nomorAyat}</span></p>
-                                <audio controls preload="none" class="h-8 opacity-40 ml-auto"><source src="${item.audio['05']}" type="audio/mpeg"></audio>
+            container.innerHTML = data.ayat.map((item) => {
+                const isLast = scrollToAyat && String(item.nomorAyat) === String(scrollToAyat);
+                return `
+                    <div id="ayat-${item.nomorAyat}" class="bg-white p-8 rounded-3xl border ${isLast ? 'last-read-box' : 'border-slate-100'} relative transition-all duration-300 shadow-sm">
+                        <div class="text-right">
+                            <p class="text-4xl font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="text-sm border rounded-full px-2 text-slate-300 font-sans">${item.nomorAyat}</span></p>
+                            <div class="audio-wrap flex justify-end ${showAudio ? '' : 'hidden-element'}">
+                                <audio id="audio-${item.nomorAyat}" onplay="updateMediaSession('${safeSuratName}', ${item.nomorAyat})" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat})" controls preload="none" class="h-8 opacity-40 ml-auto">
+                                    <source src="${item.audio['05']}" type="audio/mpeg">
+                                </audio>
                             </div>
-                            <p class="text-slate-500 text-sm italic border-t pt-6 mt-6 leading-loose">"${item.teksIndonesia}"</p>
-                            <button onclick="setSingleRead('${safeSuratName}', ${item.nomorAyat}, ${num})" class="mt-4 text-[10px] font-bold uppercase tracking-widest ${isLast ? 'text-green-600' : 'text-slate-300 hover:text-green-500'} transition-colors">
-                                ${isLast ? '✔ Posisi Bacaan Terakhir' : '📍 Tandai Sampai Sini'}
-                            </button>
-                        </div>`;
-                }).join('');
+                        </div>
+                        <div class="trans-wrap ${showTrans ? '' : 'hidden-element'}">
+                            <p class="text-slate-500 text-sm italic border-t pt-6 mt-6 leading-loose font-medium font-inter tracking-tight">"${item.teksIndonesia}"</p>
+                        </div>
+                        <button onclick="setSingleRead('${safeSuratName}', ${item.nomorAyat}, ${num})" class="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] ${isLast ? 'text-green-600' : 'text-slate-300 hover:text-green-500'} transition-colors">
+                            ${isLast ? '✔ Posisi Terakhir' : '📍 Tandai Sampai Sini'}
+                        </button>
+                    </div>`;
+            }).join('');
 
-                if (scrollToAyat) {
-                    setTimeout(() => {
-                        const el = document.getElementById(`ayat-${scrollToAyat}`);
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 500);
+            if (scrollToAyat) {
+                setTimeout(() => {
+                    const el = document.getElementById(`ayat-${scrollToAyat}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            }
+        }
+
+        // FUNGSI LOCKSCREEN SUPPORT
+        function updateMediaSession(surat, ayat) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: `${surat} - Ayat ${ayat}`,
+                    artist: 'Misyari Rasyid Al-Afasi',
+                    album: 'Program DQLP UMM',
+                    artwork: [{ src: 'https://via.placeholder.com/512/16a34a/ffffff?text=DQLP', sizes: '512x512', type: 'image/png' }]
+                });
+            }
+        }
+
+        function playNext(currentAyat, totalAyat) {
+            if (currentAyat < totalAyat) {
+                const nextAyat = currentAyat + 1;
+                const nextAudio = document.getElementById(`audio-${nextAyat}`);
+                if (nextAudio) {
+                    nextAudio.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    nextAudio.play();
                 }
-            } catch (e) { container.innerHTML = "Gagal memuat surat."; }
+            }
+        }
+
+        function toggleDisplay(className) {
+            const elements = document.getElementsByClassName(className);
+            className === 'audio-wrap' ? (showAudio = !showAudio) : (showTrans = !showTrans);
+            const btn = document.getElementById(className === 'audio-wrap' ? 'toggleAudioBtn' : 'toggleTransBtn');
+            for (let el of elements) el.classList.toggle('hidden-element');
+            btn.classList.toggle('bg-green-600');
+            btn.classList.toggle('bg-white');
+            btn.classList.toggle('text-white');
+            btn.classList.toggle('text-slate-700');
         }
 
         async function setSingleRead(sName, aNum, sNum) {
             if (!USER_EMAIL) return alert("Email harus diisi!");
-            
-            // Visual Update Langsung agar tidak mandek
             LAST_READ_DATA = { sName, aNum, sNum };
             loadSurah(sNum, aNum);
-
-            // Kirim ke Cloud
             try {
                 await fetch(GAS_WEBAPP_URL, {
                     method: 'POST', mode: 'no-cors',
                     body: JSON.stringify({ email: USER_EMAIL, surat: sName, ayat: aNum, surahNum: sNum })
                 });
-                await fetchLastRead(); // Update data tombol di depan
-            } catch (e) { console.error("Cloud error"); }
+                await fetchLastRead();
+            } catch (e) { }
         }
 
+        function resumeReading() { if (LAST_READ_DATA) loadSurah(LAST_READ_DATA.sNum, LAST_READ_DATA.aNum); }
         function setIdentity() {
             const email = document.getElementById('inputEmail').value.trim();
             if (email.includes('@')) { localStorage.setItem('dqlp_email', email); location.reload(); }
-            else alert("Email tidak valid!");
         }
         function logout() { localStorage.clear(); location.reload(); }
     </script>
