@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DQLP Reader - High Performance Fix</title>
+    <title>DQLP Reader - Fix Total Surah 3-7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -15,13 +15,9 @@
 
     <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="font-bold text-xl text-green-700 cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal">Reader</span></h1>
+            <h1 class="font-bold text-xl text-green-700 cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal uppercase tracking-tighter">Reader</span></h1>
             <div id="navAction" class="hidden">
-                <button onclick="showSurahList()" class="bg-slate-100 hover:bg-green-600 hover:text-white text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg> Kembali
-                </button>
+                <button onclick="showSurahList()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95">← Daftar Surat</button>
             </div>
         </div>
     </nav>
@@ -29,18 +25,18 @@
     <main class="max-w-6xl mx-auto px-4 mt-8">
         <section class="mb-8 max-w-2xl mx-auto">
             <div id="emailSection" class="hidden bg-green-50 p-4 rounded-2xl border border-green-100 flex justify-between items-center">
-                <span class="text-sm text-green-800">User: <b id="displayEmail"></b></span>
-                <button onclick="logout()" class="text-xs text-red-500 font-bold underline">Ganti</button>
+                <span class="text-sm text-green-800 font-medium">Aktif: <b id="displayEmail"></b></span>
+                <button onclick="logout()" class="text-xs text-red-500 font-bold underline">Ganti Akun & Reset Cache</button>
             </div>
-            <div id="loginSection" class="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
+            <div id="loginSection" class="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3 shadow-sm">
                 <input id="inputEmail" type="email" placeholder="Email UMM..." class="flex-1 p-3 rounded-xl border-none text-sm outline-none bg-white focus:ring-2 focus:ring-blue-400">
-                <button onclick="setIdentity()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold">Simpan</button>
+                <button onclick="setIdentity()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow hover:bg-blue-700">Simpan</button>
             </div>
         </section>
 
         <div id="surahListView">
             <div class="max-w-md mx-auto mb-10">
-                <input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="Cari surat..." class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-green-500 outline-none">
+                <input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="Cari nama surat (contoh: Ali 'Imran)..." class="w-full p-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-green-500 outline-none">
             </div>
             <div id="gridSurah" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
@@ -48,7 +44,7 @@
         <div id="readerView" class="hidden max-w-4xl mx-auto">
             <div id="surahHeader" class="mb-8 bg-green-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
                 <h2 id="surahTitle" class="text-4xl font-bold relative z-10"></h2>
-                <p id="surahDesc" class="opacity-80 italic mt-2 relative z-10"></p>
+                <p id="surahDesc" class="opacity-80 italic mt-2 relative z-10 font-medium"></p>
                 <div class="absolute -right-10 -bottom-10 text-white/10 text-9xl font-arabic pointer-events-none" id="bgSurahName"></div>
             </div>
             <div id="ayatContainer" class="space-y-6"></div>
@@ -56,7 +52,7 @@
     </main>
 
     <script>
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzzt7K1hjKzvWtL_abQvBgNDnW7KreIIM_FD4_HvDZhZvnUkr1El1bXJyc92ls4zo2y/exec"; 
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbx_dD9_MPOFtF9e9iq1GHohCoiZ4d1DkZYdauwYvDKqKvnhllog5ixhQQq2q8P6PnVXYQ/exec"; 
         let USER_EMAIL = localStorage.getItem('dqlp_email') || "";
         let allSurahs = [];
 
@@ -96,7 +92,7 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-slate-800">${s.namaLatin}</h3>
-                            <p class="text-[10px] text-slate-400 uppercase font-medium">${s.arti} • ${s.jumlahAyat} Ayat</p>
+                            <p class="text-[10px] text-slate-400 font-medium uppercase tracking-widest">${s.arti} • ${s.jumlahAyat} Ayat</p>
                         </div>
                     </div>
                     <div class="text-2xl font-arabic text-green-700">${s.nama}</div>
@@ -114,7 +110,7 @@
             document.getElementById('readerView').classList.remove('hidden');
             document.getElementById('navAction').classList.remove('hidden');
             const container = document.getElementById('ayatContainer');
-            container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold">Memuat Surat...</div>';
+            container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold text-lg">Membuka Mushaf...</div>';
             window.scrollTo(0,0);
 
             const cacheKey = `surah_data_${num}`;
@@ -137,20 +133,23 @@
             document.getElementById('bgSurahName').innerText = data.nama;
 
             const container = document.getElementById('ayatContainer');
+            // Menghapus tanda petik dari nama latin agar tidak merusak fungsi onclick
+            const safeSuratName = data.namaLatin.replace(/'/g, "\\'");
+
             container.innerHTML = data.ayat.map(item => {
                 const storageKey = `mark_${surahNum}_${item.nomorAyat}`;
                 const isMarked = localStorage.getItem(storageKey) === "true";
                 
                 return `
-                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group hover:shadow-md transition-all">
-                        <button onclick="handleToggle('${data.namaLatin}', ${item.nomorAyat}, ${surahNum})" 
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group hover:shadow-md transition-all duration-300">
+                        <button onclick="handleToggle('${safeSuratName}', ${item.nomorAyat}, ${surahNum})" 
                                 id="btn_${surahNum}_${item.nomorAyat}"
                                 class="absolute top-6 left-6 p-2 transition-all ${isMarked ? 'text-yellow-500' : 'text-slate-200 hover:text-yellow-400'}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="${isMarked ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor" id="icon_${surahNum}_${item.nomorAyat}">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                             </svg>
                         </button>
-                        <div class="flex flex-col gap-6">
+                        <div class="flex flex-col gap-8">
                             <div class="text-right">
                                 <p class="text-4xl font-arabic text-slate-800 leading-relaxed mb-6" dir="rtl">
                                     ${item.teksArab}
@@ -162,7 +161,7 @@
                                     </audio>
                                 </div>
                             </div>
-                            <p class="text-slate-500 text-sm italic border-t pt-4 leading-loose font-medium">"${item.teksIndonesia}"</p>
+                            <p class="text-slate-500 text-sm italic border-t pt-6 leading-loose font-medium font-inter">"${item.teksIndonesia}"</p>
                         </div>
                     </div>
                 `;
@@ -176,7 +175,6 @@
             const currentlyMarked = localStorage.getItem(storageKey) === "true";
             let actionType = currentlyMarked ? "delete" : "save";
 
-            // UI Update
             if (currentlyMarked) {
                 localStorage.removeItem(storageKey);
                 icon.setAttribute('fill', 'none');
@@ -187,13 +185,12 @@
                 btn.classList.replace('text-slate-200', 'text-yellow-500');
             }
 
-            // Sync ke Cloud
             if (USER_EMAIL) {
                 btn.classList.add('animate-pulse');
                 try {
                     await fetch(GAS_WEBAPP_URL, {
                         method: 'POST', mode: 'no-cors',
-                        body: JSON.stringify({ email: USER_EMAIL, surat: suratName, ayat: ayatNum, juz: "-", action: actionType })
+                        body: JSON.stringify({ email: USER_EMAIL, surat: suratName, ayat: ayatNum, action: actionType })
                     });
                 } catch (e) { console.error("Cloud Sync Failed"); }
                 finally { btn.classList.remove('animate-pulse'); }
@@ -203,10 +200,11 @@
         function setIdentity() {
             const email = document.getElementById('inputEmail').value.trim();
             if (email.includes('@')) { localStorage.setItem('dqlp_email', email); location.reload(); }
-            else { alert("Email tidak valid!"); }
+            else { alert("Gunakan email UMM yang valid!"); }
         }
+
         function logout() { 
-            if(confirm("Hapus cache dan ganti akun?")) {
+            if(confirm("Membersihkan cache akan memperbaiki masalah bookmark pada surah 3-7. Lanjutkan?")) {
                 localStorage.clear(); 
                 location.reload(); 
             }
