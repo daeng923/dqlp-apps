@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DQLP Reader - Last Read System</title>
+    <title>DQLP Reader - UMM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
         .font-arabic { font-family: 'Amiri', serif; line-height: 2.8; }
-        .last-read-active { border: 2px solid #16a34a !important; background-color: #f0fdf4 !important; }
+        .last-read-box { border: 2px solid #16a34a !important; background-color: #f0fdf4; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-20">
 
     <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center text-green-700">
-            <h1 class="font-bold text-xl cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal uppercase">Reader</span></h1>
+            <h1 class="font-bold text-xl cursor-pointer" onclick="showSurahList()">DQLP <span class="text-slate-800 text-sm font-normal">Reader</span></h1>
             <div id="navAction" class="hidden">
                 <button onclick="showSurahList()" class="bg-slate-100 hover:bg-green-600 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition-all">← Daftar Surat</button>
             </div>
@@ -26,44 +26,45 @@
     <main class="max-w-6xl mx-auto px-4 mt-8">
         <section class="mb-8 max-w-2xl mx-auto">
             <div id="emailSection" class="hidden space-y-4">
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center shadow-sm">
-                    <span class="text-sm font-medium text-slate-600">User: <b class="text-green-700" id="displayEmail"></b></span>
-                    <button onclick="logout()" class="text-xs text-red-500 font-bold">Ganti Akun</button>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center">
+                    <span class="text-sm font-medium">User: <b class="text-green-700" id="displayEmail"></b></span>
+                    <button onclick="logout()" class="text-xs text-red-500 font-bold underline">Ganti Akun</button>
                 </div>
                 
                 <div id="resumeCard" class="hidden bg-green-600 p-5 rounded-2xl text-white shadow-lg flex justify-between items-center cursor-pointer hover:bg-green-700 transition-all" onclick="resumeReading()">
                     <div>
-                        <p class="text-[10px] uppercase font-bold opacity-80">Lanjutkan Bacaan Terakhir:</p>
-                        <h3 id="resumeText" class="font-bold text-lg">Memuat riwayat...</h3>
+                        <p class="text-[10px] uppercase font-bold opacity-80 tracking-wider">Lanjutkan Bacaan Terakhir:</p>
+                        <h3 id="resumeText" class="font-bold text-lg">Memuat...</h3>
                     </div>
-                    <span class="bg-white/20 p-2 rounded-full">➔</span>
+                    <div class="bg-white/20 p-2 rounded-full animate-pulse">➔</div>
                 </div>
             </div>
 
-            <div id="loginSection" class="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm">
-                <p class="text-xs font-bold text-blue-800 mb-3 uppercase">Aktifkan Cloud Sync</p>
+            <div id="loginSection" class="bg-blue-50 p-6 rounded-2xl border border-blue-100 shadow-sm text-center">
+                <p class="text-xs font-bold text-blue-800 mb-4 uppercase tracking-widest">Akses Program Quranic Literacy</p>
                 <div class="flex gap-2">
-                    <input id="inputEmail" type="email" placeholder="Email UMM Mahasiswa..." class="flex-1 p-3 rounded-xl border-none text-sm outline-none bg-white focus:ring-2 focus:ring-blue-400">
-                    <button onclick="setIdentity()" class="bg-blue-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-md">Masuk</button>
+                    <input id="inputEmail" type="email" placeholder="Email UMM Mahasiswa..." class="flex-1 p-3 rounded-xl border-none text-sm outline-none bg-white">
+                    <button onclick="setIdentity()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 transition-all">Masuk</button>
                 </div>
             </div>
         </section>
 
         <div id="surahListView">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="gridSurah"></div>
+            <div id="gridSurah" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <div id="readerView" class="hidden max-w-4xl mx-auto">
-            <div id="surahHeader" class="mb-8 bg-green-800 rounded-3xl p-8 text-white shadow-xl">
-                <h2 id="surahTitle" class="text-4xl font-bold"></h2>
-                <p id="surahDesc" class="opacity-80 italic mt-2"></p>
+            <div id="surahHeader" class="mb-8 bg-green-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                <h2 id="surahTitle" class="text-4xl font-bold relative z-10"></h2>
+                <p id="surahDesc" class="opacity-80 italic mt-2 relative z-10 font-medium"></p>
+                <div class="absolute -right-10 -bottom-10 text-white/10 text-9xl font-arabic pointer-events-none select-none" id="bgSurahName"></div>
             </div>
             <div id="ayatContainer" class="space-y-6"></div>
         </div>
     </main>
 
     <script>
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzMcUygavDIPJBQSdLOPycjgkaJp_3tuqcUyvNpHCsyoFTy5nivoV97Qs5J5I58D7lCzQ/exec"; 
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwigazrT7cI6nSp25XdyWA3Ec6kwE0ixLMdCxemJP_jW1a9NdoSZPzGV-QWWPaPIv63mw/exec"; 
         let USER_EMAIL = localStorage.getItem('dqlp_email') || "";
         let LAST_READ_DATA = null;
 
@@ -81,11 +82,11 @@
             try {
                 const res = await fetch(`${GAS_WEBAPP_URL}?email=${USER_EMAIL}`);
                 LAST_READ_DATA = await res.json();
-                if (LAST_READ_DATA) {
+                if (LAST_READ_DATA && LAST_READ_DATA.sNum) {
                     document.getElementById('resumeCard').classList.remove('hidden');
                     document.getElementById('resumeText').innerText = `${LAST_READ_DATA.sName} - Ayat ${LAST_READ_DATA.aNum}`;
                 }
-            } catch (e) { console.log("Belum ada riwayat baca."); }
+            } catch (e) { console.log("Riwayat baru akan dibuat setelah Anda membaca."); }
         }
 
         async function showSurahList() {
@@ -93,77 +94,16 @@
             document.getElementById('readerView').classList.add('hidden');
             document.getElementById('navAction').classList.add('hidden');
             const res = await (await fetch('https://equran.id/api/v2/surat')).json();
-            renderGrid(res.data);
-        }
-
-        function renderGrid(data) {
-            document.getElementById('gridSurah').innerHTML = data.map(s => `
+            
+            document.getElementById('gridSurah').innerHTML = res.data.map(s => `
                 <div onclick="loadSurah(${s.nomor})" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:border-green-400 cursor-pointer flex justify-between items-center group transition-all">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 bg-green-50 text-green-700 rounded-xl flex items-center justify-center font-bold">${s.nomor}</div>
-                        <div><h3 class="font-bold text-slate-800">${s.namaLatin}</h3><p class="text-[10px] text-slate-400 uppercase">${s.jumlahAyat} Ayat</p></div>
+                        <div><h3 class="font-bold text-slate-800">${s.namaLatin}</h3><p class="text-[10px] text-slate-400 uppercase font-medium">${s.jumlahAyat} Ayat</p></div>
                     </div>
                     <div class="text-2xl font-arabic text-green-700">${s.nama}</div>
                 </div>
             `).join('');
-        }
-
-        async function loadSurah(num, scrolltoAyat = null) {
-            document.getElementById('surahListView').classList.add('hidden');
-            document.getElementById('readerView').classList.remove('hidden');
-            document.getElementById('navAction').classList.remove('hidden');
-            const container = document.getElementById('ayatContainer');
-            container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold">Membuka...</div>';
-            
-            const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
-            const data = res.data;
-
-            document.getElementById('surahTitle').innerText = data.namaLatin;
-            document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`;
-            const safeSuratName = data.namaLatin.replace(/'/g, "\\'");
-
-            container.innerHTML = data.ayat.map(item => {
-                const isThisLastRead = LAST_READ_DATA && LAST_READ_DATA.sName === data.namaLatin && String(LAST_READ_DATA.aNum) === String(item.nomorAyat);
-                
-                return `
-                    <div id="ayat-${item.nomorAyat}" class="bg-white p-8 rounded-3xl border ${isThisLastRead ? 'last-read-active shadow-md' : 'border-slate-100'} relative transition-all duration-500">
-                        <button onclick="handleSingleBookmark('${safeSuratName}', ${item.nomorAyat}, ${num})" 
-                                class="absolute top-6 left-6 p-2 ${isThisLastRead ? 'text-green-600' : 'text-slate-200 hover:text-green-500'}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="${isThisLastRead ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </button>
-                        <div class="text-right">
-                            <p class="text-4xl font-arabic text-slate-800 mb-4" dir="rtl">${item.teksArab} <span class="text-sm border rounded-full px-2 text-slate-400 font-sans">${item.nomorAyat}</span></p>
-                            <audio controls preload="none" class="h-8 opacity-30 ml-auto"><source src="${item.audio['05']}" type="audio/mpeg"></audio>
-                        </div>
-                        <p class="text-left text-slate-500 text-sm italic border-t pt-4 mt-4">"${item.teksIndonesia}"</p>
-                    </div>`;
-            }).join('');
-
-            if (scrolltoAyat) {
-                setTimeout(() => {
-                    document.getElementById(`ayat-${scrolltoAyat}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 500);
-            }
-        }
-
-        async function handleSingleBookmark(suratName, ayatNum, surahNum) {
-            if (!USER_EMAIL) { alert("Silakan masukkan email dulu!"); return; }
-            
-            // 1. Update data internal secara lokal
-            LAST_READ_DATA = { sName: suratName, aNum: ayatNum, sNum: surahNum };
-            
-            // 2. Refresh Tampilan agar hanya satu yang aktif secara visual
-            loadSurah(surahNum);
-
-            // 3. Kirim ke Spreadsheet
-            try {
-                await fetch(GAS_WEBAPP_URL, {
-                    method: 'POST', mode: 'no-cors',
-                    body: JSON.stringify({ email: USER_EMAIL, surat: suratName, ayat: ayatNum, surahNum: surahNum })
-                });
-            } catch (e) { console.error("Cloud Error"); }
         }
 
         function resumeReading() {
@@ -172,9 +112,67 @@
             }
         }
 
+        async function loadSurah(num, scrollToAyat = null) {
+            const container = document.getElementById('ayatContainer');
+            document.getElementById('surahListView').classList.add('hidden');
+            document.getElementById('readerView').classList.remove('hidden');
+            document.getElementById('navAction').classList.remove('hidden');
+            container.innerHTML = '<div class="text-center py-20 text-green-600 animate-pulse font-bold text-lg">Membuka Mushaf...</div>';
+            window.scrollTo(0,0);
+
+            try {
+                const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
+                const data = res.data;
+                document.getElementById('surahTitle').innerText = data.namaLatin;
+                document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`;
+                document.getElementById('bgSurahName').innerText = data.nama;
+                const safeSuratName = data.namaLatin.replace(/'/g, "\\'");
+
+                container.innerHTML = data.ayat.map(item => {
+                    const isLast = scrollToAyat && String(item.nomorAyat) === String(scrollToAyat);
+                    return `
+                        <div id="ayat-${item.nomorAyat}" class="bg-white p-8 rounded-3xl border ${isLast ? 'last-read-box' : 'border-slate-100'} relative transition-all duration-300">
+                            <div class="text-right">
+                                <p class="text-4xl font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="text-sm border rounded-full px-2 text-slate-400 font-sans">${item.nomorAyat}</span></p>
+                                <audio controls preload="none" class="h-8 opacity-40 ml-auto"><source src="${item.audio['05']}" type="audio/mpeg"></audio>
+                            </div>
+                            <p class="text-slate-500 text-sm italic border-t pt-6 mt-6 leading-loose">"${item.teksIndonesia}"</p>
+                            <button onclick="setSingleRead('${safeSuratName}', ${item.nomorAyat}, ${num})" class="mt-4 text-[10px] font-bold uppercase tracking-widest ${isLast ? 'text-green-600' : 'text-slate-300 hover:text-green-500'} transition-colors">
+                                ${isLast ? '✔ Posisi Bacaan Terakhir' : '📍 Tandai Sampai Sini'}
+                            </button>
+                        </div>`;
+                }).join('');
+
+                if (scrollToAyat) {
+                    setTimeout(() => {
+                        const el = document.getElementById(`ayat-${scrollToAyat}`);
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500);
+                }
+            } catch (e) { container.innerHTML = "Gagal memuat surat."; }
+        }
+
+        async function setSingleRead(sName, aNum, sNum) {
+            if (!USER_EMAIL) return alert("Email harus diisi!");
+            
+            // Visual Update Langsung agar tidak mandek
+            LAST_READ_DATA = { sName, aNum, sNum };
+            loadSurah(sNum, aNum);
+
+            // Kirim ke Cloud
+            try {
+                await fetch(GAS_WEBAPP_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    body: JSON.stringify({ email: USER_EMAIL, surat: sName, ayat: aNum, surahNum: sNum })
+                });
+                await fetchLastRead(); // Update data tombol di depan
+            } catch (e) { console.error("Cloud error"); }
+        }
+
         function setIdentity() {
             const email = document.getElementById('inputEmail').value.trim();
             if (email.includes('@')) { localStorage.setItem('dqlp_email', email); location.reload(); }
+            else alert("Email tidak valid!");
         }
         function logout() { localStorage.clear(); location.reload(); }
     </script>
