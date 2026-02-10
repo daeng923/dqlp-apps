@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UMM Quranic Flow - Final Edition</title>
+    <title>UMM Quranic Flow - Final Optimized</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* PEMANGGILAN FONT LOKAL DARI GITHUB ANDA */
+        /* PEMANGGILAN FONT DARI REPO GITHUB ANDA */
         @font-face {
             font-family: "LPMQ Isep Misbah";
             src: url("LPMQ Isep Misbah.ttf") format("truetype");
@@ -16,25 +16,44 @@
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; }
 
+        /* ARABIC TYPOGRAPHY - Optimized Spacing */
         .font-arabic { 
             font-family: "LPMQ Isep Misbah", serif; direction: rtl; text-align: justify; text-justify: inter-word;
-            line-height: 2.8; font-size: 2.8rem; 
+            line-height: 2.8; font-size: 2.7rem; word-spacing: -2px;
         }
 
         @media (max-width: 768px) {
-            .font-arabic { font-size: 1.8rem; line-height: 2.5; }
+            .font-arabic { 
+                font-size: 1.6rem; /* Lebih kecil sesuai permintaan */
+                line-height: 2.4; 
+                word-spacing: -1px;
+            }
         }
 
-        /* CUSTOM AUDIO PLAYER RAPI */
+        /* NOMOR AYAT - Rapat */
+        .ayat-num { 
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.65rem; 
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 50%; 
+            width: 25px; height: 25px; display: inline-flex; 
+            align-items: center; justify-content: center; color: #94a3b8; 
+            font-weight: 800; direction: ltr; vertical-align: middle;
+            margin: 0 4px; /* Lebih rapat */
+        }
+
+        @media (max-width: 768px) {
+            .ayat-num {
+                width: 20px; height: 20px; font-size: 0.55rem;
+                margin: 0 2px; /* Sangat rapat di Mobile */
+            }
+        }
+
         audio { width: 100%; height: 35px; border-radius: 12px; filter: grayscale(100%) invert(5%); margin-top: 15px; }
 
-        /* NAVIGASI CENTER FIX */
+        /* NAVIGASI CENTER */
         .nav-wrapper { position: fixed; bottom: 1.5rem; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .nav-capsule { pointer-events: auto; width: 90%; max-width: 400px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-radius: 4rem; display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.5rem; }
 
         .ayat-card { background: #ffffff; border-radius: 2.5rem; border: 2px solid #10b981; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.03); }
-        .ayat-num { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; color: #94a3b8; font-weight: 800; direction: ltr; margin: 0 8px; }
-
         .last-read-box { border: 4px solid #064e3b !important; background-color: #f0fdfa; }
         .hidden-element { display: none !important; }
         .active-btn { background-color: #059669 !important; color: white !important; }
@@ -48,7 +67,7 @@
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div onclick="showSurahList()" class="cursor-pointer">
                 <h1 class="font-extrabold text-emerald-800 text-lg leading-none tracking-tighter">UMM <span class="text-slate-800">Quranic Flow</span></h1>
-                <p id="appModeText" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Quran Platform</p>
+                <p id="appModeText" class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">LPMQ Optimized Sync</p>
             </div>
             <div id="navAction" class="hidden flex items-center gap-2">
                 <div class="flex bg-slate-100 rounded-full p-1 border">
@@ -63,18 +82,18 @@
     <main class="max-w-6xl mx-auto px-6 mt-8 pb-40">
         <section id="userSection" class="max-w-xl mx-auto mb-8">
             <div id="loginSection" class="bg-white p-8 rounded-[3rem] shadow-xl border text-center">
-                <h2 class="font-black text-slate-800 text-xl mb-4 tracking-widest uppercase">Login Literasi Quran</h2>
-                <input id="inputEmail" type="email" placeholder="Email @umm.ac.id" class="w-full p-4 rounded-2xl border bg-slate-50 text-sm outline-none mb-4 focus:border-emerald-500">
+                <h2 class="font-black text-slate-800 text-xl mb-4 uppercase tracking-widest">Login Literasi Quran</h2>
+                <input id="inputEmail" type="email" placeholder="Email UMM..." class="w-full p-4 rounded-2xl border bg-slate-50 text-sm outline-none mb-4 focus:border-emerald-500">
                 <div class="flex gap-2">
-                    <button onclick="setIdentity()" class="flex-1 bg-emerald-600 text-white p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase">Cloud Sync</button>
+                    <button onclick="setIdentity()" class="flex-1 bg-emerald-600 text-white p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase shadow-lg">Cloud Sync</button>
                     <button onclick="startAsGuest()" class="flex-1 bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase border border-slate-200">Mode Tamu</button>
                 </div>
             </div>
 
             <div id="emailSection" class="hidden space-y-4">
                 <div class="flex justify-between items-center px-4">
-                    <div class="text-[10px] font-bold text-slate-400">USER: <span id="displayMode" class="text-emerald-600"></span></div>
-                    <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase">Keluar</button>
+                    <div class="text-[10px] font-bold text-slate-400">USER: <span id="displayMode" class="text-emerald-600 font-black"></span></div>
+                    <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
                 </div>
                 <div id="resumeCard" class="hidden bg-emerald-700 p-6 rounded-[2.5rem] text-white shadow-xl flex justify-between items-center cursor-pointer border-b-4 border-emerald-950 animate-fade" onclick="resumeReading()">
                     <div>
@@ -113,7 +132,7 @@
     </div>
 
     <script>
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby0QvbGsdxjpIN9Vo8ny7q4DQvYO5D4d90JP_57nfUMzO4JVMCyX_yjC4lNlAdtjLuo_g/exec"; // Masukkan URL GAS Anda
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby0QvbGsdxjpIN9Vo8ny7q4DQvYO5D4d90JP_57nfUMzO4JVMCyX_yjC4lNlAdtjLuo_g/exec"; 
         let USER_EMAIL = localStorage.getItem('dqlp_email') || null;
         let IS_GUEST = localStorage.getItem('dqlp_guest') === 'true';
         let LAST_READ_DATA = null;
@@ -172,12 +191,12 @@
             document.getElementById('mushafNav').classList.add('hidden');
             const res = await (await fetch('https://equran.id/api/v2/surat')).json();
             document.getElementById('gridSurah').innerHTML = res.data.map(s => `
-                <div onclick="loadSurah(${s.nomor})" class="bg-white p-6 rounded-[2.5rem] border-b-4 border-slate-100 hover:border-emerald-500 shadow-xl cursor-pointer flex justify-between items-center transition-all group animate-fade">
+                <div onclick="loadSurah(${s.nomor})" class="bg-white p-6 rounded-3xl border-b-4 border-slate-100 hover:border-emerald-500 shadow-xl cursor-pointer flex justify-between items-center transition-all group animate-fade">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black text-xs group-hover:bg-emerald-600 group-hover:text-white transition-all">${s.nomor}</div>
+                        <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black text-[10px] group-hover:bg-emerald-600 group-hover:text-white transition-all">${s.nomor}</div>
                         <h3 class="font-bold text-slate-800 text-sm tracking-tight">${s.namaLatin}</h3>
                     </div>
-                    <div class="text-2xl font-arabic text-emerald-700 opacity-20 group-hover:opacity-100 transition-all">${s.nama}</div>
+                    <div class="text-xl font-arabic text-emerald-700 opacity-20 group-hover:opacity-100 transition-all">${s.nama}</div>
                 </div>`).join('');
         }
 
@@ -187,7 +206,7 @@
             currentSurahNum = num;
             readStartTime = Date.now();
             const container = document.getElementById('contentContainer');
-            container.innerHTML = '<div class="text-center py-20 font-bold text-emerald-600 animate-pulse tracking-widest">Memuat Tadarus...</div>';
+            container.innerHTML = '<div class="text-center py-20 font-bold text-emerald-700 animate-pulse tracking-widest uppercase text-xs">Menyiapkan Tadarus...</div>';
             
             try {
                 const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
@@ -205,21 +224,21 @@
                             <p class="font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="ayat-num">${item.nomorAyat}</span></p>
                         </div>
                         <div class="audio-wrap ${showAudio ? '' : 'hidden-element'}"><audio onplay="trackStart()" onpause="trackEnd()" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat}, ${num})" id="audio-${item.nomorAyat}" controls><source src="${item.audio['05']}"></audio></div>
-                        <div class="trans-wrap mt-8 border-t border-slate-100 pt-8 ${showTrans ? '' : 'hidden-element'}">
-                            <p class="text-slate-500 text-xs italic font-medium leading-loose">"${item.teksIndonesia}"</p>
+                        <div class="trans-wrap mt-8 border-t border-slate-50 pt-8 ${showTrans ? '' : 'hidden-element'}">
+                            <p class="text-slate-500 text-[11px] italic font-medium leading-loose">"${item.teksIndonesia}"</p>
                         </div>
                         <div class="mt-8 flex justify-center">
                             <button onclick="saveProgress('${data.namaLatin.replace(/'/g, "\\'")}', ${item.nomorAyat}, ${num})" 
-                                class="px-12 py-4 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border-b-4 transition-all active:scale-95
+                                class="px-12 py-3.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border-b-4 transition-all active:scale-95
                                 ${isLast ? 'bg-emerald-950 text-white border-black shadow-none' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">
-                                ${isLast ? 'POSISI DISIMPAN ✓' : 'SIMPAN PROGRES'}
+                                ${isLast ? 'POSISI DISIMPAN ✓' : 'SIMPAN BACAAN'}
                             </button>
                         </div>
                     </div>`}).join('');
 
                 if(scrollToAyat) setTimeout(() => document.getElementById(`ayat-${scrollToAyat}`).scrollIntoView({behavior:'smooth', block:'center'}), 600);
                 if(autoPlayFirst) setTimeout(() => document.getElementById('audio-1').play(), 1000);
-            } catch (e) { container.innerHTML = "Koneksi Bermasalah."; }
+            } catch (e) { container.innerHTML = "Gagal memuat."; }
         }
 
         async function loadMushafPage(page) {
@@ -228,7 +247,7 @@
             currentMushafPage = page;
             readStartTime = Date.now();
             const container = document.getElementById('contentContainer');
-            container.innerHTML = '<p class="text-center py-20 text-emerald-600 animate-pulse font-bold tracking-widest">Menyusun Halaman...</p>';
+            container.innerHTML = '<p class="text-center py-20 text-emerald-600 animate-pulse font-bold tracking-widest uppercase text-xs">Menyusun Mushaf...</p>';
             
             try {
                 const map = MUSHAF_MAP[page] || MUSHAF_MAP[1];
@@ -236,19 +255,18 @@
                 const filtered = res.data.ayat.filter(a => a.nomorAyat >= map.start && a.nomorAyat <= map.end);
                 currentAudioSurahName = map.n;
                 
-                let html = `<div class="bg-white p-12 md:p-20 rounded-[4rem] shadow-2xl font-arabic text-slate-800 animate-fade">`;
+                let html = `<div class="bg-white p-10 md:p-20 rounded-[4rem] shadow-2xl font-arabic text-slate-800 animate-fade">`;
                 filtered.forEach(a => { html += `${a.teksArab} <span class="ayat-num">${a.nomorAyat}</span> `; });
                 html += `</div>`;
-                html += `<div class="mt-10 flex justify-center"><button onclick="saveProgress('Halaman', ${page}, 1)" class="bg-blue-600 text-white px-12 py-4 rounded-full font-black shadow-xl uppercase text-[10px] tracking-widest active:scale-95 border-b-4 border-blue-950">SINKRONISASI HALAMAN ${page}</button></div>`;
+                html += `<div class="mt-10 flex justify-center"><button onclick="saveProgress('Halaman', ${page}, 1)" class="bg-blue-600 text-white px-12 py-4 rounded-full font-black shadow-xl uppercase text-[10px] tracking-widest active:scale-95 border-b-4 border-blue-950">SIMPAN HALAMAN ${page}</button></div>`;
                 container.innerHTML = html;
                 document.getElementById('currentPageNum').innerText = page;
                 window.scrollTo(0,0);
-            } catch (e) { container.innerHTML = "Gagal memuat mushaf."; }
+            } catch (e) { container.innerHTML = "Error mushaf."; }
         }
 
         function updateUI() {
             const isM = currentMode === 'mushaf';
-            const isT = currentMode === 'tadarus';
             document.getElementById('appModeText').innerText = isM ? 'Mode Mushaf' : 'Hybrid Sync Platform';
             document.getElementById('viewModeToggle').innerText = isM ? 'Mode Tadarus' : 'Mode Mushaf';
             document.getElementById('readerView').classList.remove('hidden');
@@ -260,8 +278,7 @@
 
         async function saveProgress(sName, aNum, sNum) {
             const duration = Math.floor((Date.now() - readStartTime) / 1000);
-            const data = { sName, aNum, sNum };
-            localStorage.setItem('dqlp_last_read', JSON.stringify(data));
+            localStorage.setItem('dqlp_last_read', JSON.stringify({ sName, aNum, sNum }));
             if (USER_EMAIL && !IS_GUEST) {
                 try {
                     await fetch(GAS_WEBAPP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ email: USER_EMAIL, surat: sName, ayat: aNum, surahNum: sNum, duration: duration, activityType: "Membaca" }) });
@@ -273,7 +290,6 @@
 
         function trackStart() { audioStartTime = Date.now(); }
         function trackEnd() { if (audioStartTime) { totalAudioDuration += Math.floor((Date.now() - audioStartTime) / 1000); audioStartTime = null; } }
-
         function playNext(current, total, surahNum) {
             trackEnd();
             if(current < total) {
@@ -281,13 +297,11 @@
                 if(n) { n.scrollIntoView({behavior:'smooth', block:'center'}); n.play(); }
             } else if (isAutoNextSurah && surahNum < 114) { loadSurah(surahNum + 1, null, true); }
         }
-
         function toggleAutoNext() {
             isAutoNextSurah = !isAutoNextSurah;
             document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio: ON" : "Audio: OFF";
             document.getElementById('autoNextBtn').classList.toggle('active-btn', isAutoNextSurah);
         }
-
         function toggleViewMode() { if(currentMode === 'tadarus') loadMushafPage(1); else loadSurah(currentSurahNum); }
         function changePage(delta) { let n = currentMushafPage + delta; if(n >= 1 && n <= 5) loadMushafPage(n); }
         function setIdentity() {
