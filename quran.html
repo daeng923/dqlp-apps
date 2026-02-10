@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UMM Quranic Flow - Final Optimized</title>
+    <title>UMM Quranic Flow - Assessment Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* PEMANGGILAN FONT DARI REPO GITHUB ANDA */
         @font-face {
             font-family: "LPMQ Isep Misbah";
             src: url("LPMQ Isep Misbah.ttf") format("truetype");
@@ -16,40 +15,26 @@
 
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; }
 
-        /* ARABIC TYPOGRAPHY - Optimized Spacing */
         .font-arabic { 
             font-family: "LPMQ Isep Misbah", serif; direction: rtl; text-align: justify; text-justify: inter-word;
             line-height: 2.8; font-size: 2.7rem; word-spacing: -2px;
         }
 
         @media (max-width: 768px) {
-            .font-arabic { 
-                font-size: 1.6rem; /* Lebih kecil sesuai permintaan */
-                line-height: 2.4; 
-                word-spacing: -1px;
-            }
+            .font-arabic { font-size: 1.6rem; line-height: 2.4; word-spacing: -1px; }
+            .ayat-num { width: 20px !important; height: 20px !important; font-size: 0.55rem !important; margin: 0 2px !important; }
         }
 
-        /* NOMOR AYAT - Rapat */
         .ayat-num { 
             font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.65rem; 
             background: #fff; border: 1px solid #e2e8f0; border-radius: 50%; 
             width: 25px; height: 25px; display: inline-flex; 
             align-items: center; justify-content: center; color: #94a3b8; 
-            font-weight: 800; direction: ltr; vertical-align: middle;
-            margin: 0 4px; /* Lebih rapat */
-        }
-
-        @media (max-width: 768px) {
-            .ayat-num {
-                width: 20px; height: 20px; font-size: 0.55rem;
-                margin: 0 2px; /* Sangat rapat di Mobile */
-            }
+            font-weight: 800; direction: ltr; vertical-align: middle; margin: 0 4px;
         }
 
         audio { width: 100%; height: 35px; border-radius: 12px; filter: grayscale(100%) invert(5%); margin-top: 15px; }
 
-        /* NAVIGASI CENTER */
         .nav-wrapper { position: fixed; bottom: 1.5rem; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
         .nav-capsule { pointer-events: auto; width: 90%; max-width: 400px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-radius: 4rem; display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.5rem; }
 
@@ -82,7 +67,10 @@
     <main class="max-w-6xl mx-auto px-6 mt-8 pb-40">
         <section id="userSection" class="max-w-xl mx-auto mb-8">
             <div id="loginSection" class="bg-white p-8 rounded-[3rem] shadow-xl border text-center">
-                <h2 class="font-black text-slate-800 text-xl mb-4 uppercase tracking-widest">Login Literasi Quran</h2>
+                <h2 class="font-black text-slate-800 text-xl mb-4 uppercase tracking-widest">Akun Literasi Quran</h2>
+                <p class="text-[10px] text-slate-400 mb-8 font-medium italic">
+                    Login untuk menyimpan bacaan dan memantau durasi serta aktivitas.
+                </p>
                 <input id="inputEmail" type="email" placeholder="Email UMM..." class="w-full p-4 rounded-2xl border bg-slate-50 text-sm outline-none mb-4 focus:border-emerald-500">
                 <div class="flex gap-2">
                     <button onclick="setIdentity()" class="flex-1 bg-emerald-600 text-white p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase shadow-lg">Cloud Sync</button>
@@ -95,6 +83,18 @@
                     <div class="text-[10px] font-bold text-slate-400">USER: <span id="displayMode" class="text-emerald-600 font-black"></span></div>
                     <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
                 </div>
+
+                <div class="bg-white p-6 rounded-[2.5rem] border shadow-sm grid grid-cols-2 gap-4 animate-fade">
+                    <div class="text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <p class="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">Total Durasi</p>
+                        <h4 id="statMinutes" class="text-xl font-black text-slate-800">0 <span class="text-[10px]">Min</span></h4>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-2xl border border-blue-100">
+                        <p class="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Total Aktivitas</p>
+                        <h4 id="statEntries" class="text-xl font-black text-slate-800">0</h4>
+                    </div>
+                </div>
+
                 <div id="resumeCard" class="hidden bg-emerald-700 p-6 rounded-[2.5rem] text-white shadow-xl flex justify-between items-center cursor-pointer border-b-4 border-emerald-950 animate-fade" onclick="resumeReading()">
                     <div>
                         <p class="text-[9px] uppercase font-black opacity-70 mb-1 tracking-widest font-bold">Lanjutkan Terakhir:</p>
@@ -105,7 +105,12 @@
             </div>
         </section>
 
-        <div id="surahListView">
+        <div id="surahListView" class="space-y-6">
+            <div class="relative max-w-xl mx-auto">
+                <input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="Cari nama surat..." 
+                    class="w-full p-4 pl-12 rounded-full border-2 border-emerald-50 bg-white text-sm focus:border-emerald-500 outline-none transition-all shadow-sm">
+                <span class="absolute left-5 top-1/2 -translate-y-1/2 opacity-30">🔍</span>
+            </div>
             <div id="gridSurah" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade"></div>
         </div>
 
@@ -132,7 +137,7 @@
     </div>
 
     <script>
-        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby0QvbGsdxjpIN9Vo8ny7q4DQvYO5D4d90JP_57nfUMzO4JVMCyX_yjC4lNlAdtjLuo_g/exec"; 
+        const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxdk9wC0GIPJSfIBy6AGdLCVljgjTFPwbx--UJXjdYurPMIP3Ysbm4k6Ofz3_zP2pXmZA/exec"; 
         let USER_EMAIL = localStorage.getItem('dqlp_email') || null;
         let IS_GUEST = localStorage.getItem('dqlp_guest') === 'true';
         let LAST_READ_DATA = null;
@@ -170,8 +175,10 @@
             } else if (USER_EMAIL) {
                 try {
                     const res = await fetch(`${GAS_WEBAPP_URL}?email=${USER_EMAIL}`);
-                    LAST_READ_DATA = await res.json();
-                    updateResumeCard();
+                    const stats = await res.json();
+                    document.getElementById('statMinutes').innerHTML = `${stats.totalMinutes} <span class="text-[10px]">Min</span>`;
+                    document.getElementById('statEntries').innerText = stats.totalEntries;
+                    if (stats.lastRead) { LAST_READ_DATA = stats.lastRead; updateResumeCard(); }
                 } catch (e) {}
             }
         }
@@ -181,6 +188,15 @@
                 document.getElementById('resumeCard').classList.remove('hidden');
                 document.getElementById('resumeText').innerText = `${LAST_READ_DATA.sName} : Ayat ${LAST_READ_DATA.aNum}`;
             }
+        }
+
+        function filterSurah() {
+            const input = document.getElementById('searchSurah').value.toLowerCase();
+            const cards = document.querySelectorAll('#gridSurah > div');
+            cards.forEach(card => {
+                const name = card.querySelector('h3').innerText.toLowerCase();
+                card.style.display = name.includes(input) ? "flex" : "none";
+            });
         }
 
         async function showSurahList() {
@@ -201,10 +217,8 @@
         }
 
         async function loadSurah(num, scrollToAyat = null, autoPlayFirst = false) {
-            currentMode = 'tadarus';
-            updateUI();
-            currentSurahNum = num;
-            readStartTime = Date.now();
+            currentMode = 'tadarus'; updateUI();
+            currentSurahNum = num; readStartTime = Date.now();
             const container = document.getElementById('contentContainer');
             container.innerHTML = '<div class="text-center py-20 font-bold text-emerald-700 animate-pulse tracking-widest uppercase text-xs">Menyiapkan Tadarus...</div>';
             
@@ -220,18 +234,14 @@
                     const isLast = LAST_READ_DATA && LAST_READ_DATA.sNum == num && LAST_READ_DATA.aNum == item.nomorAyat;
                     return `
                     <div id="ayat-${item.nomorAyat}" class="ayat-card ${isLast ? 'last-read-box shadow-xl' : ''} animate-fade">
-                        <div class="text-right">
-                            <p class="font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="ayat-num">${item.nomorAyat}</span></p>
-                        </div>
+                        <div class="text-right"><p class="font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="ayat-num">${item.nomorAyat}</span></p></div>
                         <div class="audio-wrap ${showAudio ? '' : 'hidden-element'}"><audio onplay="trackStart()" onpause="trackEnd()" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat}, ${num})" id="audio-${item.nomorAyat}" controls><source src="${item.audio['05']}"></audio></div>
-                        <div class="trans-wrap mt-8 border-t border-slate-50 pt-8 ${showTrans ? '' : 'hidden-element'}">
-                            <p class="text-slate-500 text-[11px] italic font-medium leading-loose">"${item.teksIndonesia}"</p>
-                        </div>
+                        <div class="trans-wrap mt-8 border-t border-slate-50 pt-8 ${showTrans ? '' : 'hidden-element'}"><p class="text-slate-500 text-[11px] italic font-medium leading-loose">"${item.teksIndonesia}"</p></div>
                         <div class="mt-8 flex justify-center">
                             <button onclick="saveProgress('${data.namaLatin.replace(/'/g, "\\'")}', ${item.nomorAyat}, ${num})" 
                                 class="px-12 py-3.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border-b-4 transition-all active:scale-95
-                                ${isLast ? 'bg-emerald-950 text-white border-black shadow-none' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">
-                                ${isLast ? 'POSISI DISIMPAN ✓' : 'SIMPAN BACAAN'}
+                                ${isLast ? 'bg-emerald-950 text-white border-black' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">
+                                ${isLast ? 'BACAAN TERAKHIR YG TERSIMPAN ✓' : 'SIMPAN BACAAN'}
                             </button>
                         </div>
                     </div>`}).join('');
@@ -242,10 +252,8 @@
         }
 
         async function loadMushafPage(page) {
-            currentMode = 'mushaf';
-            updateUI();
-            currentMushafPage = page;
-            readStartTime = Date.now();
+            currentMode = 'mushaf'; updateUI();
+            currentMushafPage = page; readStartTime = Date.now();
             const container = document.getElementById('contentContainer');
             container.innerHTML = '<p class="text-center py-20 text-emerald-600 animate-pulse font-bold tracking-widest uppercase text-xs">Menyusun Mushaf...</p>';
             
@@ -284,8 +292,7 @@
                     await fetch(GAS_WEBAPP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ email: USER_EMAIL, surat: sName, ayat: aNum, surahNum: sNum, duration: duration, activityType: "Membaca" }) });
                 } catch (e) {}
             }
-            alert("Sinkronisasi Berhasil!");
-            location.reload(); 
+            alert("Sinkronisasi Berhasil!"); location.reload(); 
         }
 
         function trackStart() { audioStartTime = Date.now(); }
@@ -299,7 +306,7 @@
         }
         function toggleAutoNext() {
             isAutoNextSurah = !isAutoNextSurah;
-            document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio: ON" : "Audio: OFF";
+            document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio Next Surat: ON" : "Audio Next Surat: OFF";
             document.getElementById('autoNextBtn').classList.toggle('active-btn', isAutoNextSurah);
         }
         function toggleViewMode() { if(currentMode === 'tadarus') loadMushafPage(1); else loadSurah(currentSurahNum); }
@@ -310,11 +317,7 @@
         }
         function startAsGuest() { localStorage.setItem('dqlp_guest', 'true'); localStorage.removeItem('dqlp_email'); location.reload(); }
         function logout() { localStorage.clear(); location.reload(); }
-        function toggleDisplay(cls) { 
-            if(cls === 'audio-wrap') showAudio = !showAudio; 
-            if(cls === 'trans-wrap') showTrans = !showTrans;
-            const els = document.getElementsByClassName(cls); for(let el of els) el.classList.toggle('hidden-element'); 
-        }
+        function toggleDisplay(cls) { const els = document.getElementsByClassName(cls); for(let el of els) el.classList.toggle('hidden-element'); }
         function resumeReading() { if(LAST_READ_DATA) loadSurah(LAST_READ_DATA.sNum, LAST_READ_DATA.aNum); }
         
         async function sendAudioAnalytics() {
