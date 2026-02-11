@@ -13,7 +13,7 @@
             font-display: swap;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; margin: 0; padding: 0; }
 
         .font-arabic { 
             font-family: "LPMQ Isep Misbah", serif; direction: rtl; text-align: justify; text-justify: inter-word;
@@ -23,6 +23,10 @@
         @media (max-width: 768px) {
             .font-arabic { font-size: 1.6rem; line-height: 2.4; word-spacing: -1px; }
             .ayat-num { width: 20px !important; height: 20px !important; font-size: 0.55rem !important; margin: 0 2px !important; }
+            /* Optimasi Full Width Mushaf di Mobile */
+            .mushaf-viewport { max-width: 100%; padding-bottom: 20px !important; }
+            main { padding-left: 0 !important; padding-right: 0 !important; }
+            .mushaf-card { border-radius: 0; border: none; }
         }
 
         .ayat-num { 
@@ -33,11 +37,24 @@
             font-weight: 800; direction: ltr; vertical-align: middle; margin: 0 4px;
         }
 
+        /* Style Khusus Basmalah */
+        .basmalah-box {
+            text-align: center; font-size: 2.2rem; color: #065f46;
+            margin-bottom: 2.5rem; padding: 1.5rem; border-bottom: 1px double #e2e8f0;
+            line-height: 1.5; font-family: "LPMQ Isep Misbah", serif;
+        }
+
+        /* Mode Mushaf Gambar - Responsif */
+        .mushaf-viewport { width: 100%; max-width: 800px; margin: 0 auto; position: relative; background: #fff; }
+        .mushaf-card { width: 100%; background: #fff; transition: opacity 0.2s ease-in-out; }
+        .mushaf-img { width: 100%; height: auto; display: block; }
+
         audio { width: 100%; height: 35px; border-radius: 12px; filter: grayscale(100%) invert(5%); margin-top: 15px; }
 
         .nav-wrapper { position: fixed; bottom: 1.5rem; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; pointer-events: none; }
-        .nav-capsule { pointer-events: auto; width: 90%; max-width: 400px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.1); border-radius: 4rem; display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.5rem; }
+        .nav-capsule { pointer-events: auto; width: 92%; max-width: 450px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 20px 50px rgba(0,0,0,0.15); border-radius: 4rem; display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1.2rem; }
 
+        .page-input { width: 60px; background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 1rem; text-align: center; font-weight: 800; padding: 4px; outline: none; }
         .ayat-card { background: #ffffff; border-radius: 2.5rem; border: 2px solid #10b981; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.03); }
         .last-read-box { border: 4px solid #064e3b !important; background-color: #f0fdfa; }
         .hidden-element { display: none !important; }
@@ -130,9 +147,13 @@
 
     <div id="mushafNav" class="hidden nav-wrapper animate-fade">
         <div class="nav-capsule">
-            <button onclick="changePage(-1)" class="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center font-bold border border-emerald-100">←</button>
-            <div class="text-center"><span class="text-[8px] uppercase font-black text-slate-400 block tracking-widest">Halaman</span><span id="currentPageNum" class="font-black text-emerald-800 text-lg">1</span></div>
-            <button onclick="changePage(1)" class="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center font-bold border border-emerald-100">→</button>
+            <button onclick="changePage(-1)" class="w-12 h-12 bg-slate-100 rounded-full font-bold shadow-sm">←</button>
+            <div class="flex items-center gap-2">
+                <span class="text-[9px] font-black text-slate-400">HAL</span>
+                <input type="number" id="jumpPageInput" class="page-input" value="1" onchange="renderPage(this.value)">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">/ 604</span>
+            </div>
+            <button onclick="changePage(1)" class="w-12 h-12 bg-slate-100 rounded-full font-bold shadow-sm">→</button>
         </div>
     </div>
 
@@ -144,7 +165,7 @@
         let currentMode = 'list'; 
         let isAutoNextSurah = false;
         let currentSurahNum = 1;
-        let currentMushafPage = 1;
+        let activePage = 1;
         let showAudio = true;
         let showTrans = true;
         let readStartTime = null;
@@ -152,11 +173,7 @@
         let totalAudioDuration = 0; 
         let currentAudioSurahName = "-";
 
-        const MUSHAF_MAP = {
-            1: { s: 1, start: 1, end: 7, n: "Al-Fatihah" },
-            2: { s: 2, start: 1, end: 5, n: "Al-Baqarah" },
-            3: { s: 2, start: 6, end: 16, n: "Al-Baqarah" }
-        };
+        const SURAH_TO_PAGE = { 1:1, 2:2, 3:50, 4:77, 5:106, 6:128, 7:151, 8:177, 9:187, 10:208, 11:221, 12:235, 13:249, 14:255, 15:262, 16:267, 17:282, 18:293, 19:305, 20:312, 21:322, 22:332, 23:342, 24:350, 25:359, 26:367, 27:377, 28:385, 29:396, 30:404, 31:411, 32:415, 33:418, 34:428, 35:434, 36:440, 37:446, 38:453, 39:458, 40:467, 41:477, 42:483, 43:489, 44:496, 45:499, 46:502, 47:507, 48:511, 49:515, 50:518, 51:520, 52:523, 53:526, 54:528, 55:531, 56:534, 57:537, 58:542, 59:545, 60:549, 61:551, 62:553, 63:554, 64:556, 65:558, 66:560, 67:562, 68:564, 69:566, 70:568, 71:570, 72:572, 73:574, 74:575, 75:577, 76:578, 77:580, 78:582, 79:583, 80:585, 81:586, 82:587, 83:587, 84:589, 85:590, 86:591, 87:591, 88:592, 89:593, 90:594, 91:595, 92:595, 93:596, 94:596, 95:597, 96:597, 97:598, 98:598, 99:599, 100:599, 101:600, 102:600, 103:601, 104:601, 105:601, 106:602, 107:602, 108:602, 109:603, 110:603, 111:603, 112:604, 113:604, 114:604 };
 
         document.addEventListener('DOMContentLoaded', () => {
             if (USER_EMAIL || IS_GUEST) {
@@ -187,6 +204,7 @@
             if (LAST_READ_DATA && LAST_READ_DATA.sNum) {
                 document.getElementById('resumeCard').classList.remove('hidden');
                 document.getElementById('resumeText').innerText = `${LAST_READ_DATA.sName} : Ayat ${LAST_READ_DATA.aNum}`;
+                currentSurahNum = LAST_READ_DATA.sNum;
             }
         }
 
@@ -200,20 +218,29 @@
         }
 
         async function showSurahList() {
-            currentMode = 'list';
+            currentMode = 'list'; updateUI();
             document.getElementById('surahListView').classList.remove('hidden');
             document.getElementById('readerView').classList.add('hidden');
             document.getElementById('navAction').classList.add('hidden');
             document.getElementById('mushafNav').classList.add('hidden');
             const res = await (await fetch('https://equran.id/api/v2/surat')).json();
             document.getElementById('gridSurah').innerHTML = res.data.map(s => `
-                <div onclick="loadSurah(${s.nomor})" class="bg-white p-6 rounded-3xl border-b-4 border-slate-100 hover:border-emerald-500 shadow-xl cursor-pointer flex justify-between items-center transition-all group animate-fade">
+                <div onclick="handleSurahClick(${s.nomor})" class="bg-white p-6 rounded-3xl border-b-4 border-slate-100 hover:border-emerald-500 shadow-xl cursor-pointer flex justify-between items-center transition-all group animate-fade">
                     <div class="flex items-center gap-4">
                         <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black text-[10px] group-hover:bg-emerald-600 group-hover:text-white transition-all">${s.nomor}</div>
                         <h3 class="font-bold text-slate-800 text-sm tracking-tight">${s.namaLatin}</h3>
                     </div>
                     <div class="text-xl font-arabic text-emerald-700 opacity-20 group-hover:opacity-100 transition-all">${s.nama}</div>
                 </div>`).join('');
+        }
+
+        function handleSurahClick(num) {
+            currentSurahNum = num;
+            if (document.getElementById('viewModeToggle').innerText === 'Mode Tadarus') {
+                loadMushafPage(SURAH_TO_PAGE[num]);
+            } else {
+                loadSurah(num);
+            }
         }
 
         async function loadSurah(num, scrollToAyat = null, autoPlayFirst = false) {
@@ -230,7 +257,9 @@
                 document.getElementById('bgSurahName').innerText = data.nama;
                 currentAudioSurahName = data.namaLatin;
 
-                container.innerHTML = data.ayat.map(item => {
+                let basmalahHtml = (num !== 1 && num !== 9) ? `<div class="basmalah-box animate-fade">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</div>` : "";
+
+                container.innerHTML = basmalahHtml + data.ayat.map(item => {
                     const isLast = LAST_READ_DATA && LAST_READ_DATA.sNum == num && LAST_READ_DATA.aNum == item.nomorAyat;
                     return `
                     <div id="ayat-${item.nomorAyat}" class="ayat-card ${isLast ? 'last-read-box shadow-xl' : ''} animate-fade">
@@ -240,7 +269,7 @@
                         <div class="mt-8 flex justify-center">
                             <button onclick="saveProgress('${data.namaLatin.replace(/'/g, "\\'")}', ${item.nomorAyat}, ${num})" 
                                 class="px-12 py-3.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border-b-4 transition-all active:scale-95
-                                ${isLast ? 'bg-emerald-950 text-white border-black' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">
+                                ${isLast ? 'bg-emerald-950 text-white border-black shadow-none' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">
                                 ${isLast ? 'BACAAN TERAKHIR YG TERSIMPAN ✓' : 'SIMPAN BACAAN'}
                             </button>
                         </div>
@@ -251,31 +280,61 @@
             } catch (e) { container.innerHTML = "Gagal memuat."; }
         }
 
-        async function loadMushafPage(page) {
+        function loadMushafPage(page) {
             currentMode = 'mushaf'; updateUI();
-            currentMushafPage = page; readStartTime = Date.now();
-            const container = document.getElementById('contentContainer');
-            container.innerHTML = '<p class="text-center py-20 text-emerald-600 animate-pulse font-bold tracking-widest uppercase text-xs">Menyusun Mushaf...</p>';
+            readStartTime = Date.now();
+            activePage = parseInt(page);
             
-            try {
-                const map = MUSHAF_MAP[page] || MUSHAF_MAP[1];
-                const res = await (await fetch(`https://equran.id/api/v2/surat/${map.s}`)).json();
-                const filtered = res.data.ayat.filter(a => a.nomorAyat >= map.start && a.nomorAyat <= map.end);
-                currentAudioSurahName = map.n;
-                
-                let html = `<div class="bg-white p-10 md:p-20 rounded-[4rem] shadow-2xl font-arabic text-slate-800 animate-fade">`;
-                filtered.forEach(a => { html += `${a.teksArab} <span class="ayat-num">${a.nomorAyat}</span> `; });
-                html += `</div>`;
-                html += `<div class="mt-10 flex justify-center"><button onclick="saveProgress('Halaman', ${page}, 1)" class="bg-blue-600 text-white px-12 py-4 rounded-full font-black shadow-xl uppercase text-[10px] tracking-widest active:scale-95 border-b-4 border-blue-950">SIMPAN HALAMAN ${page}</button></div>`;
-                container.innerHTML = html;
-                document.getElementById('currentPageNum').innerText = page;
-                window.scrollTo(0,0);
-            } catch (e) { container.innerHTML = "Error mushaf."; }
+            const container = document.getElementById('contentContainer');
+            container.innerHTML = `
+                <div class="mushaf-viewport" id="mushafTouchArea">
+                    <div class="mushaf-card" id="mushafFrame">
+                        <img src="" id="mushafImg" class="mushaf-img" alt="Mushaf">
+                    </div>
+                </div>
+                <div class="flex justify-center mt-2 pb-20">
+                    <button onclick="saveProgress('Halaman', activePage, 1)" class="bg-blue-600 text-white px-12 py-5 rounded-full font-black text-[10px] uppercase shadow-xl border-b-4 border-blue-900 active:scale-95 transition-all">SIMPAN HALAMAN ${activePage}</button>
+                </div>`;
+            renderPage(activePage);
+            setupTouchEvents();
+        }
+
+        function renderPage(page) {
+            if (page < 1 || page > 604) return;
+            activePage = parseInt(page);
+            const img = document.getElementById('mushafImg');
+            const frame = document.getElementById('mushafFrame');
+            frame.style.opacity = "0.6";
+            img.src = `https://quran.tampang.com/wp-content/uploads/quran2/${String(activePage).padStart(3, '0')}.webp`;
+            img.onload = () => { 
+                frame.style.opacity = "1"; 
+                document.getElementById('jumpPageInput').value = activePage;
+                document.getElementById('currentPageNum').innerText = activePage;
+            };
+            window.scrollTo(0,0);
+        }
+
+        function changePage(delta) { 
+            // Logika Swipe RTL: Geser kanan (delta -1) ke hal berikutnya (+1), Geser kiri (delta +1) ke hal sebelumnya (-1)
+            let next = activePage + (delta * -1); 
+            if (next >= 1 && next <= 604) renderPage(next); 
+        }
+
+        let touchStartX = 0;
+        function setupTouchEvents() {
+            const area = document.getElementById('mushafTouchArea');
+            if(!area) return;
+            area.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+            area.addEventListener('touchend', e => {
+                let touchEndX = e.changedTouches[0].screenX;
+                if (touchStartX - touchEndX > 60) changePage(1); // Swipe kiri -> hal sebelumnya
+                if (touchEndX - touchStartX > 60) changePage(-1); // Swipe kanan -> hal berikutnya
+            }, {passive: true});
         }
 
         function updateUI() {
             const isM = currentMode === 'mushaf';
-            document.getElementById('appModeText').innerText = isM ? 'Mode Mushaf' : 'Hybrid Sync Platform';
+            document.getElementById('appModeText').innerText = isM ? 'Mode Mushaf' : 'SDM-AIK Platform';
             document.getElementById('viewModeToggle').innerText = isM ? 'Mode Tadarus' : 'Mode Mushaf';
             document.getElementById('readerView').classList.remove('hidden');
             document.getElementById('surahListView').classList.add('hidden');
@@ -309,8 +368,7 @@
             document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio Next Surat: ON" : "Audio Next Surat: OFF";
             document.getElementById('autoNextBtn').classList.toggle('active-btn', isAutoNextSurah);
         }
-        function toggleViewMode() { if(currentMode === 'tadarus') loadMushafPage(1); else loadSurah(currentSurahNum); }
-        function changePage(delta) { let n = currentMushafPage + delta; if(n >= 1 && n <= 5) loadMushafPage(n); }
+        function toggleViewMode() { if(currentMode === 'tadarus') loadMushafPage(SURAH_TO_PAGE[currentSurahNum]); else loadSurah(currentSurahNum); }
         function setIdentity() {
             const email = document.getElementById('inputEmail').value.trim();
             if(email.includes('@')) { localStorage.setItem('dqlp_email', email); localStorage.setItem('dqlp_guest', 'false'); location.reload(); }
