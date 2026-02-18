@@ -104,18 +104,19 @@
                         <th style="padding:10px; border:1px solid #ccc;">Digunakan Untuk</th>
                         <th style="padding:10px; border:1px solid #ccc;">Cara Baca</th>
                     </tr>
-                    <tr><td style="background:#ff0000; color:white; font-weight:bold; text-align:center;">MERAH</td><td style="border:1px solid #ccc; padding:10px;">Idgham tanpa ghunnah<br>Waqaf tegas</td><td style="border:1px solid #ccc; padding:10px;">Lebur tanpa dengung atau berhenti kuat</td></tr>
-                    <tr><td style="background:#d100d1; color:white; font-weight:bold; text-align:center;">MAGENTA</td><td style="border:1px solid #ccc; padding:10px;">Idgham dengan ghunnah<br>Ghunnah<br>Madd lazim (6 harakat)</td><td style="border:1px solid #ccc; padding:10px;">Dengung jelas atau panjang 6 harakat</td></tr>
+                    <tr><td style="background:#ff0000; color:white; font-weight:bold; text-align:center;">MERAH</td><td style="border:1px solid #ccc; padding:10px;">Idgham tanpa ghunnah / Waqaf tegas</td><td style="border:1px solid #ccc; padding:10px;">Lebur tanpa dengung atau berhenti kuat</td></tr>
+                    <tr><td style="background:#d100d1; color:white; font-weight:bold; text-align:center;">MAGENTA</td><td style="border:1px solid #ccc; padding:10px;">Idgham dengan ghunnah / Madd lazim (6 harakat)</td><td style="border:1px solid #ccc; padding:10px;">Dengung jelas atau panjang 6 harakat</td></tr>
                     <tr><td style="background:#0033cc; color:white; font-weight:bold; text-align:center;">BIRU TUA</td><td style="border:1px solid #ccc; padding:10px;">Qalqalah</td><td style="border:1px solid #ccc; padding:10px;">Bunyi pantul (tidak dipanjangkan)</td></tr>
-                    <tr><td style="background:#00cfe8; color:black; font-weight:bold; text-align:center;">BIRU MUDA</td><td style="border:1px solid #ccc; padding:10px;">Iqlab<br>Madd wajib muttashil (5 harakat)</td><td style="border:1px solid #ccc; padding:10px;">Bunyi berubah jadi "m" atau panjang 5 harakat</td></tr>
-                    <tr><td style="background:#00a651; color:white; font-weight:bold; text-align:center;">HIJAU</td><td style="border:1px solid #ccc; padding:10px;">Ikhfa'<br>Ikhfa' syafawi<br>Madd jaiz munfashil</td><td style="border:1px solid #ccc; padding:10px;">Samar atau panjang fleksibel (2-5 harakat)</td></tr>
+                    <tr><td style="background:#00cfe8; color:black; font-weight:bold; text-align:center;">BIRU MUDA</td><td style="border:1px solid #ccc; padding:10px;">Iqlab / Madd wajib muttashil (5 harakat)</td><td style="border:1px solid #ccc; padding:10px;">Bunyi berubah jadi "m" atau panjang 5 harakat</td></tr>
+                    <tr><td style="background:#00a651; color:white; font-weight:bold; text-align:center;">HIJAU</td><td style="border:1px solid #ccc; padding:10px;">Ikhfa' / Madd jaiz munfashil</td><td style="border:1px solid #ccc; padding:10px;">Samar atau panjang fleksibel (2-5 harakat)</td></tr>
                     <tr><td style="background:#999999; color:white; font-weight:bold; text-align:center;">ABU-ABU</td><td style="border:1px solid #ccc; padding:10px;">Huruf tidak dibaca</td><td style="border:1px solid #ccc; padding:10px;">Tidak dilafalkan</td></tr>
                 </table>
                 <button onclick="closeTajwidModal()" style="width: 100%; margin-top: 20px; background: #065f46; color: white; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 12px;">TUTUP PANDUAN</button>
             </div>
         </div>
     </div>
-<nav class="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b shadow-sm px-4 py-3">
+
+    <nav class="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b shadow-sm px-4 py-3">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div onclick="showSurahList()" class="cursor-pointer">
                 <h1 class="font-extrabold text-emerald-800 text-lg leading-none tracking-tighter">UMM <span class="text-slate-800">Quranic Flow</span></h1>
@@ -135,9 +136,6 @@
         <section id="userSection" class="max-w-xl mx-auto mb-8">
             <div id="loginSection" class="bg-white p-8 rounded-[3rem] shadow-xl border text-center">
                 <h2 class="font-black text-slate-800 text-xl mb-4 uppercase tracking-widest">Akun Literasi Quran</h2>
-		<p class="text-[10px] text-slate-400 mb-8 font-medium italic">
-                    Login untuk menyimpan bacaan dan memantau durasi serta aktivitas.
-                </p>
                 <input id="inputEmail" type="email" placeholder="Email UMM..." class="w-full p-4 rounded-2xl border bg-slate-50 text-sm outline-none mb-4 focus:border-emerald-500">
                 <div class="flex gap-2">
                     <button onclick="setIdentity()" class="flex-1 bg-emerald-600 text-white p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase shadow-lg">Cloud Sync</button>
@@ -145,19 +143,35 @@
                 </div>
             </div>
             <div id="emailSection" class="hidden space-y-4">
-                <div class="flex justify-between items-center px-4">
-                    <div class="text-[10px] font-bold text-slate-400">USER: <span id="displayMode" class="text-emerald-600 font-black"></span></div>
-                    <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
-                </div>
-                <div class="bg-white p-6 rounded-[2.5rem] border shadow-sm grid grid-cols-2 gap-4 animate-fade">
-                    <div class="text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100"><p class="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">Total Durasi</p><h4 id="statMinutes" class="text-xl font-black text-slate-800">0</h4></div>
-                    <div class="text-center p-3 bg-blue-50 rounded-2xl border border-blue-100"><p class="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Total Aktivitas</p><h4 id="statEntries" class="text-xl font-black text-slate-800">0</h4></div>
-                </div>
-                <div id="resumeCard" class="hidden bg-emerald-700 p-6 rounded-[2.5rem] text-white shadow-xl flex justify-between items-center cursor-pointer border-b-4 border-emerald-950 animate-fade" onclick="resumeReading()">
-                    <div><p class="text-[9px] uppercase font-black opacity-70 mb-1 tracking-widest font-bold">Lanjutkan Terakhir:</p><h3 id="resumeText" class="font-bold text-lg italic tracking-tight">Memuat...</h3></div>
-                    <div class="bg-white text-emerald-700 w-10 h-10 rounded-full flex items-center justify-center font-black">➔</div>
-                </div>
-            </div>
+    <div class="flex justify-between items-center px-4">
+        <div class="text-[10px] font-bold text-slate-400 uppercase">
+            USER: <span id="displayMode" class="text-emerald-600 font-black ml-1"></span>
+        </div>
+        <div class="flex gap-2 items-center">
+            <button id="toggleStatsBtn" onclick="toggleAccordion()" class="hidden text-[8px] font-black text-emerald-700 uppercase bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">Info User ▾</button>
+            <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
+        </div>
+    </div>
+
+    <div id="accordionContent" class="space-y-4">
+    <div class="bg-white p-6 rounded-[2.5rem] border shadow-sm grid grid-cols-2 gap-4 animate-fade">
+        <div class="text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
+            <p class="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">Total Durasi</p>
+            <h4 id="statMinutes" class="text-xl font-black text-slate-800">0</h4>
+        </div>
+        <div class="text-center p-3 bg-blue-50 rounded-2xl border border-blue-100">
+            <p class="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Total Aktivitas</p>
+            <h4 id="statEntries" class="text-xl font-black text-slate-800">0</h4>
+        </div>
+    </div>
+    <div id="resumeCard" class="hidden bg-emerald-700 p-6 rounded-[2.5rem] text-white shadow-xl flex justify-between items-center cursor-pointer border-b-4 border-emerald-950 animate-fade" onclick="resumeReading()">
+        <div>
+            <p class="text-[9px] uppercase font-black opacity-70 mb-1 tracking-widest font-bold">Lanjutkan Terakhir:</p>
+            <h3 id="resumeText" class="font-bold text-lg italic tracking-tight">Memuat...</h3>
+        </div>
+        <div class="bg-white text-emerald-700 w-10 h-10 rounded-full flex items-center justify-center font-black">➔</div>
+    </div>
+</div>
         </section>
 
         <div id="surahListView" class="space-y-6">
@@ -208,7 +222,18 @@
 
         const SURAH_TO_PAGE = { 1:1, 2:2, 3:50, 4:77, 5:106, 6:128, 7:151, 8:177, 9:187, 10:208, 11:221, 12:235, 13:249, 14:255, 15:262, 16:267, 17:282, 18:293, 19:305, 20:312, 21:322, 22:332, 23:342, 24:350, 25:359, 26:367, 27:377, 28:385, 29:396, 30:404, 31:411, 32:415, 33:418, 34:428, 35:434, 36:440, 37:446, 38:453, 39:458, 40:467, 41:477, 42:483, 43:489, 44:496, 45:499, 46:502, 47:507, 48:511, 49:515, 50:518, 51:520, 52:523, 53:526, 54:528, 55:531, 56:534, 57:537, 58:542, 59:545, 60:549, 61:551, 62:553, 63:554, 64:556, 65:558, 66:560, 67:562, 68:564, 69:566, 70:568, 71:570, 72:572, 73:574, 74:575, 75:577, 76:578, 77:580, 78:582, 79:583, 80:585, 81:586, 82:587, 83:587, 84:589, 85:590, 86:591, 87:591, 88:592, 89:593, 90:594, 91:595, 92:595, 93:596, 94:596, 95:597, 96:597, 97:598, 98:598, 99:599, 100:599, 101:600, 102:600, 103:601, 104:601, 105:601, 106:602, 107:602, 108:602, 109:603, 110:603, 111:603, 112:604, 113:604, 114:604 };
 
-        document.addEventListener('DOMContentLoaded', () => { if (USER_EMAIL || IS_GUEST) { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('emailSection').classList.remove('hidden'); fetchLatestProgress(); } showSurahList(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            if (USER_EMAIL || IS_GUEST) { 
+                document.getElementById('loginSection').classList.add('hidden'); 
+                document.getElementById('emailSection').classList.remove('hidden'); 
+                
+                // BARIS INI UNTUK MENAMPILKAN EMAIL DI SAMPING USER:
+                document.getElementById('displayMode').innerText = IS_GUEST ? "MODE TAMU" : USER_EMAIL;
+                
+                fetchLatestProgress(); 
+            } 
+            showSurahList(); 
+        });
 
         async function fetchLatestProgress() { if (IS_GUEST) { const local = localStorage.getItem('dqlp_last_read'); if (local) { LAST_READ_DATA = JSON.parse(local); updateResumeCard(); } } else if (USER_EMAIL) { try { const res = await fetch(`${GAS_WEBAPP_URL}?email=${USER_EMAIL}`); const stats = await res.json(); document.getElementById('statMinutes').innerHTML = `${stats.totalMinutes} <span class="text-[10px]">Min</span>`; document.getElementById('statEntries').innerText = stats.totalEntries; if (stats.lastRead) { LAST_READ_DATA = stats.lastRead; updateResumeCard(); } } catch (e) {} } }
 
@@ -239,7 +264,7 @@
         function loadMushafPage(page) {
             currentMode = 'mushaf'; updateUI(); readStartTime = Date.now(); activePage = parseInt(page);
             const container = document.getElementById('contentContainer');
-            container.innerHTML = `<div class="mushaf-viewport" id="mushafTouchArea"><div class="mushaf-card" id="mushafFrame"><img src="" id="mushafImg" class="mushaf-img" alt="Mushaf"></div></div><div class="flex justify-center mt-2 pb-20"><button onclick="saveProgress('Halaman', activePage, 1)" class="bg-blue-600 text-white px-12 py-5 rounded-full font-black text-[10px] uppercase shadow-xl border-b-4 border-blue-900 active:scale-95 transition-all">SIMPAN BACAAN PD HALAMAN </button></div>`;
+            container.innerHTML = `<div class="mushaf-viewport" id="mushafTouchArea"><div class="mushaf-card" id="mushafFrame"><img src="" id="mushafImg" class="mushaf-img" alt="Mushaf"></div></div><div class="flex justify-center mt-2 pb-20"><button onclick="saveProgress('Halaman', activePage, 1)" class="bg-blue-600 text-white px-12 py-5 rounded-full font-black text-[10px] uppercase shadow-xl border-b-4 border-blue-900 active:scale-95 transition-all">SIMPAN BACAAN PD HALAMAN INI </button></div>`;
             renderPage(activePage); setupTouchEvents();
         }
 
@@ -255,6 +280,7 @@
         function changePage(delta) { let next = activePage + (delta * -1); if (next >= 1 && next <= 604) renderPage(next); }
         function setupTouchEvents() {
             const area = document.getElementById('mushafTouchArea'); if(!area) return;
+            let touchStartX = 0;
             area.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
             area.addEventListener('touchend', e => { let endX = e.changedTouches[0].screenX; if (touchStartX - endX > 60) changePage(1); if (endX - touchStartX > 60) changePage(-1); }, {passive: true});
         }
@@ -284,8 +310,34 @@
             document.getElementById('srcStandard').classList.toggle('active', mushafSource === 'standard');
             document.getElementById('srcKemenag').classList.toggle('active', mushafSource === 'kemenag');
             document.getElementById('btnTajwidInfo').classList.toggle('hidden-element', mushafSource !== 'kemenag');
-        }
+        // --- MASUKKAN KODE ACCORDION DI SINI ---
+    const accBtn = document.getElementById('toggleStatsBtn');
+    const accContent = document.getElementById('accordionContent');
+    
+    if (isM) {
+        accBtn.classList.remove('hidden');    // Munculkan tombol "Info User ▾"
+        accContent.classList.add('hidden');    // Sembunyikan statistik secara otomatis
+        accBtn.innerText = "Info User ▾";
+    } else {
+        accBtn.classList.add('hidden');       // Sembunyikan tombol di mode lain
+        accContent.classList.remove('hidden'); // Tampilkan kembali statistik di mode tadarus/list
+    }
+    // ---------------------------------------
 
+} // Ini adalah kurung penutup fungsi updateUI
+
+// Letakkan di sini (sebelum fungsi setIdentity)
+function toggleAccordion() {
+    const content = document.getElementById('accordionContent');
+    const btn = document.getElementById('toggleStatsBtn');
+    if(content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        btn.innerText = "Info User ▴";
+    } else {
+        content.classList.add('hidden');
+        btn.innerText = "Info User ▾";
+    }
+}
         function setIdentity() { const e = document.getElementById('inputEmail').value.trim(); if(e.includes('@')) { localStorage.setItem('dqlp_email', e); localStorage.setItem('dqlp_guest', 'false'); location.reload(); } }
         function startAsGuest() { localStorage.setItem('dqlp_guest', 'true'); localStorage.removeItem('dqlp_email'); location.reload(); }
         function logout() { localStorage.clear(); location.reload(); }
@@ -297,18 +349,6 @@
         function playNext(c, t, s) { trackEnd(); if(c < t) { const n = document.getElementById(`audio-${c + 1}`); if(n) { n.scrollIntoView({behavior:'smooth', block:'center'}); n.play(); } } else if (isAutoNextSurah && s < 114) { loadSurah(s + 1, null, true); } }
         async function sendAudioAnalytics() { trackEnd(); if (totalAudioDuration > 0 && USER_EMAIL && !IS_GUEST) { const data = JSON.stringify({ email: USER_EMAIL, surat: currentAudioSurahName, ayat: "-", surahNum: "-", duration: totalAudioDuration, activityType: "Mendengarkan" }); navigator.sendBeacon(GAS_WEBAPP_URL, data); } }
         window.addEventListener('beforeunload', sendAudioAnalytics);
-function playNext(current, total, surahNum) {
-            trackEnd();
-            if(current < total) {
-                const n = document.getElementById(`audio-${current + 1}`);
-                if(n) { n.scrollIntoView({behavior:'smooth', block:'center'}); n.play(); }
-            } else if (isAutoNextSurah && surahNum < 114) { loadSurah(surahNum + 1); }
-        }
-        function toggleAutoNext() {
-            isAutoNextSurah = !isAutoNextSurah;
-            document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio Next: ON" : "Audio Next: OFF";
-            document.getElementById('autoNextBtn').classList.toggle('active-btn', isAutoNextSurah);
-        }
     </script>
 </body>
 </html>
