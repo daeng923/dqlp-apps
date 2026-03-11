@@ -13,7 +13,8 @@
             font-display: swap;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; scroll-behavior: smooth; margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; margin: 0; padding: 0; overflow-x: hidden; }
 
         .font-arabic { 
             font-family: "LPMQ Isep Misbah", serif; direction: rtl; text-align: justify; text-justify: inter-word;
@@ -24,8 +25,6 @@
             .font-arabic { font-size: 1.6rem; line-height: 2.4; word-spacing: -1px; }
             .ayat-num { width: 20px !important; height: 20px !important; font-size: 0.55rem !important; margin: 0 2px !important; }
             .mushaf-viewport { max-width: 100%; padding-bottom: 20px !important; }
-            main { padding-left: 0 !important; padding-right: 0 !important; }
-            .mushaf-card { border-radius: 0; border: none; }
         }
 
         .ayat-num { 
@@ -53,6 +52,11 @@
 
         .page-input { width: 60px; background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 1rem; text-align: center; font-weight: 800; padding: 4px; outline: none; }
         .ayat-card { background: #ffffff; border-radius: 2.5rem; border: 2px solid #10b981; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 10px 15px rgba(0,0,0,0.03); }
+
+        @media (max-width: 640px) {
+            .ayat-card { border-radius: 1.5rem; padding: 1.2rem; }
+        }
+
         .last-read-box { border: 4px solid #064e3b !important; background-color: #f0fdfa; }
         .hidden-element { display: none !important; }
         .active-btn { background-color: #059669 !important; color: white !important; }
@@ -78,22 +82,209 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
 
-        .source-selector { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; padding: 0 10px; }
+        .source-selector { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; padding: 0 10px; flex-wrap: wrap; }
         .source-btn {
             font-size: 9px; font-weight: 800; text-transform: uppercase; 
-            padding: 8px 12px; border-radius: 12px; transition: all 0.3s; background: #e2e8f0; color: #64748b;
+            padding: 8px 12px; border-radius: 12px; transition: all 0.3s; background: #e2e8f0; color: #64748b; cursor: pointer; border: none;
         }
         .source-btn.active { background: #065f46; color: white; }
-        .info-btn { background: #0ea5e9; color: white; padding: 8px 12px; border-radius: 12px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+        .info-btn { background: #0ea5e9; color: white; padding: 8px 12px; border-radius: 12px; font-size: 9px; font-weight: 800; text-transform: uppercase; cursor: pointer; border: none; }
+
+        /* ---- MOBILE FIXES ---- */
+        /* User section sits ABOVE the list, not blocking it */
+        #userSection {
+            max-width: 600px;
+            margin: 0 auto 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Main layout: allow full width on mobile */
+        main {
+            width: 100%;
+            max-width: 1152px;
+            margin: 0 auto;
+            padding: 1rem 0.75rem 10rem;
+        }
+
+        @media (min-width: 768px) {
+            main { padding: 2rem 1.5rem 10rem; }
+        }
+
+        /* Surah grid: 2 cols on mobile, 3 on desktop */
+        #gridSurah {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        @media (min-width: 640px) {
+            #gridSurah { gap: 1rem; }
+        }
+
+        @media (min-width: 1024px) {
+            #gridSurah { grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+        }
+
+        /* Surah card — compact on mobile */
+        .surah-card {
+            background: white;
+            padding: 0.875rem;
+            border-radius: 1.25rem;
+            border-bottom: 4px solid #f1f5f9;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .surah-card { padding: 1.5rem; border-radius: 1.5rem; }
+        }
+
+        .surah-card:active, .surah-card:hover { border-bottom-color: #10b981; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
+        .surah-card:active { transform: scale(0.97); }
+
+        .surah-num-badge {
+            width: 2rem; height: 2rem; min-width: 2rem;
+            background: #f0fdf4; color: #059669;
+            border-radius: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 0.65rem;
+            transition: all 0.2s;
+        }
+
+        @media (min-width: 768px) {
+            .surah-num-badge { width: 2.25rem; height: 2.25rem; font-size: 0.7rem; }
+        }
+
+        .surah-card:hover .surah-num-badge { background: #059669; color: white; }
+
+        .surah-arabic-preview {
+            font-family: "LPMQ Isep Misbah", serif;
+            font-size: 1.25rem;
+            color: #10b981;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+            line-height: 1;
+        }
+
+        @media (min-width: 768px) {
+            .surah-arabic-preview { font-size: 1.5rem; }
+        }
+
+        .surah-card:hover .surah-arabic-preview { opacity: 1; }
+
+        .last-read-badge {
+            position: absolute; top: 6px; right: 6px;
+            background: #065f46; color: white;
+            font-size: 7px; font-weight: 900;
+            padding: 2px 7px; border-radius: 100px;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        /* Search input */
+        #searchWrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 1rem;
+            padding: 0 0;
+        }
+
+        #searchSurah {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            border-radius: 9999px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        #searchSurah:focus { border-color: #10b981; }
+
+        /* Login section compact */
+        #loginSection {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        /* Stats grid */
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+        /* Resume card */
+        #resumeCard {
+            background: linear-gradient(135deg, #065f46, #047857);
+            border-radius: 1.5rem;
+            padding: 1rem 1.25rem;
+            color: white;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 4px solid #022c22;
+            box-shadow: 0 8px 20px rgba(6,95,70,0.3);
+        }
+
+        #resumeCard.visible { display: flex; }
+
+        /* Surah count pill */
+        .juz-pill {
+            font-size: 8px; font-weight: 800; 
+            background: #f0fdf4; color: #059669;
+            padding: 2px 8px; border-radius: 100px;
+            text-transform: uppercase;
+        }
+
+        /* Reader view */
+        #readerView { width: 100%; max-width: 900px; margin: 0 auto; }
+
+        /* Nav action buttons — tighter on mobile */
+        #navAction .flex { gap: 0.5rem; }
+
+        @media (max-width: 480px) {
+            #viewModeToggle, #autoNextBtn { font-size: 6.5px !important; padding: 6px 8px !important; }
+        }
+
+        /* Empty state */
+        .empty-search {
+            text-align: center; padding: 3rem 1rem;
+            color: #94a3b8; font-weight: 700; font-size: 0.8rem;
+            grid-column: 1 / -1;
+        }
+
+        /* Scroll to top FAB */
+        #scrollTopBtn {
+            position: fixed; bottom: 5.5rem; right: 1.25rem;
+            width: 44px; height: 44px;
+            background: #065f46; color: white;
+            border-radius: 50%; border: none;
+            font-size: 18px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(6,95,70,0.4);
+            display: none; align-items: center; justify-content: center;
+            z-index: 999; transition: all 0.3s;
+        }
+        #scrollTopBtn.visible { display: flex; }
+        #scrollTopBtn:active { transform: scale(0.9); }
     </style>
 </head>
-<body class="text-slate-900 overflow-x-hidden">
+<body class="text-slate-900">
 
     <div id="customToast">
         <span style="font-size: 18px;">✓</span> 
         <span>Bacaan berhasil disimpan!</span>
     </div>
 
+    <!-- Tajwid Modal -->
     <div id="tajwidModal" class="modal-overlay" onclick="closeTajwidModal()">
         <div class="modal-content animate-fade" onclick="event.stopPropagation()">
             <div style="font-family: Arial, sans-serif; max-width: 800px; margin:auto; line-height:1.6">
@@ -111,11 +302,12 @@
                     <tr><td style="background:#00a651; color:white; font-weight:bold; text-align:center;">HIJAU</td><td style="border:1px solid #ccc; padding:10px;">Ikhfa' / Madd jaiz munfashil</td><td style="border:1px solid #ccc; padding:10px;">Samar atau panjang fleksibel (2-5 harakat)</td></tr>
                     <tr><td style="background:#999999; color:white; font-weight:bold; text-align:center;">ABU-ABU</td><td style="border:1px solid #ccc; padding:10px;">Huruf tidak dibaca</td><td style="border:1px solid #ccc; padding:10px;">Tidak dilafalkan</td></tr>
                 </table>
-                <button onclick="closeTajwidModal()" style="width: 100%; margin-top: 20px; background: #065f46; color: white; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 12px;">TUTUP PANDUAN</button>
+                <button onclick="closeTajwidModal()" style="width: 100%; margin-top: 20px; background: #065f46; color: white; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; border: none;">TUTUP PANDUAN</button>
             </div>
         </div>
     </div>
 
+    <!-- Navbar -->
     <nav class="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b shadow-sm px-4 py-3">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <div onclick="showSurahList()" class="cursor-pointer">
@@ -124,84 +316,105 @@
             </div>
             <div id="navAction" class="hidden flex items-center gap-2">
                 <div class="flex bg-slate-100 rounded-full p-1 border">
-                    <button id="autoNextBtn" onclick="toggleAutoNext()" class="px-3 py-1.5 text-[7px] font-black uppercase rounded-full text-slate-400">Audio Next Surat: OFF</button>
+                    <button id="autoNextBtn" onclick="toggleAutoNext()" class="px-3 py-1.5 text-[7px] font-black uppercase rounded-full text-slate-400">Audio Next: OFF</button>
                     <button id="viewModeToggle" onclick="toggleViewMode()" class="px-3 py-1.5 text-[7px] font-black uppercase rounded-full bg-white border shadow-sm">Mode Mushaf</button>
                 </div>
-                <button onclick="showSurahList()" class="bg-slate-800 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">←</button>
+                <button onclick="showSurahList()" class="bg-slate-800 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">←</button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-6 mt-8 pb-40">
-        <section id="userSection" class="max-w-xl mx-auto mb-8">
-            <div id="loginSection" class="bg-white p-8 rounded-[3rem] shadow-xl border text-center">
-                <h2 class="font-black text-slate-800 text-xl mb-4 uppercase tracking-widest">Akun Literasi Quran</h2>
-                <input id="inputEmail" type="email" placeholder="Email UMM..." class="w-full p-4 rounded-2xl border bg-slate-50 text-sm outline-none mb-4 focus:border-emerald-500">
+    <main>
+        <!-- User Section — always above the list -->
+        <section id="userSection">
+            <div id="loginSection">
+                <h2 class="font-black text-slate-800 text-base mb-1 uppercase tracking-widest">Akun Literasi Quran</h2>
+                <p class="text-xs text-slate-400 mb-4">Login untuk sync progres bacaan</p>
+                <input id="inputEmail" type="email" placeholder="Email UMM Anda..." class="w-full p-3.5 rounded-2xl border bg-slate-50 text-sm outline-none mb-3 focus:border-emerald-500">
                 <div class="flex gap-2">
-                    <button onclick="setIdentity()" class="flex-1 bg-emerald-600 text-white p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase shadow-lg">Cloud Sync</button>
-                    <button onclick="startAsGuest()" class="flex-1 bg-slate-100 text-slate-500 p-4 rounded-2xl font-bold text-[10px] tracking-widest uppercase border border-slate-200">Mode Tamu</button>
+                    <button onclick="setIdentity()" class="flex-1 bg-emerald-600 text-white p-3.5 rounded-2xl font-bold text-[10px] tracking-widest uppercase shadow-lg">☁ Cloud Sync</button>
+                    <button onclick="startAsGuest()" class="flex-1 bg-slate-100 text-slate-500 p-3.5 rounded-2xl font-bold text-[10px] tracking-widest uppercase border border-slate-200">Mode Tamu</button>
                 </div>
             </div>
-            <div id="emailSection" class="hidden space-y-4">
-    <div class="flex justify-between items-center px-4">
-        <div class="text-[10px] font-bold text-slate-400 uppercase">
-            USER: <span id="displayMode" class="text-emerald-600 font-black ml-1"></span>
-        </div>
-        <div class="flex gap-2 items-center">
-            <button id="toggleStatsBtn" onclick="toggleAccordion()" class="hidden text-[8px] font-black text-emerald-700 uppercase bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">Info User ▾</button>
-            <button onclick="logout()" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
-        </div>
-    </div>
 
-    <div id="accordionContent" class="space-y-4">
-    <div class="bg-white p-6 rounded-[2.5rem] border shadow-sm grid grid-cols-2 gap-4 animate-fade">
-        <div class="text-center p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
-            <p class="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">Total Durasi</p>
-            <h4 id="statMinutes" class="text-xl font-black text-slate-800">0</h4>
-        </div>
-        <div class="text-center p-3 bg-blue-50 rounded-2xl border border-blue-100">
-            <p class="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Total Aktivitas</p>
-            <h4 id="statEntries" class="text-xl font-black text-slate-800">0</h4>
-        </div>
-    </div>
-    <div id="resumeCard" class="hidden bg-emerald-700 p-6 rounded-[2.5rem] text-white shadow-xl flex justify-between items-center cursor-pointer border-b-4 border-emerald-950 animate-fade" onclick="resumeReading()">
-        <div>
-            <p class="text-[9px] uppercase font-black opacity-70 mb-1 tracking-widest font-bold">Lanjutkan Terakhir:</p>
-            <h3 id="resumeText" class="font-bold text-lg italic tracking-tight">Memuat...</h3>
-        </div>
-        <div class="bg-white text-emerald-700 w-10 h-10 rounded-full flex items-center justify-center font-black">➔</div>
-    </div>
-</div>
+            <div id="emailSection" class="hidden space-y-3">
+                <div class="flex justify-between items-center px-1">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full inline-block"></span>
+                        <span id="displayMode" class="text-emerald-600 font-black"></span>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <button id="toggleStatsBtn" onclick="toggleAccordion()" class="hidden text-[8px] font-black text-emerald-700 uppercase bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">Info ▾</button>
+                        <button onclick="logout()" class="text-[10px] font-black text-red-400 uppercase tracking-widest bg-red-50 px-3 py-1.5 rounded-full">Logout</button>
+                    </div>
+                </div>
+
+                <div id="accordionContent" class="space-y-3">
+                    <div class="bg-white p-4 rounded-2xl border shadow-sm stat-grid animate-fade">
+                        <div class="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <p class="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">Durasi</p>
+                            <h4 id="statMinutes" class="text-xl font-black text-slate-800">0</h4>
+                        </div>
+                        <div class="text-center p-3 bg-blue-50 rounded-xl border border-blue-100">
+                            <p class="text-[8px] font-black text-blue-600 uppercase tracking-tighter">Aktivitas</p>
+                            <h4 id="statEntries" class="text-xl font-black text-slate-800">0</h4>
+                        </div>
+                    </div>
+                    <div id="resumeCard" onclick="resumeReading()">
+                        <div>
+                            <p class="text-[9px] uppercase font-black opacity-70 mb-0.5 tracking-widest">Lanjutkan:</p>
+                            <h3 id="resumeText" class="font-bold text-base">Memuat...</h3>
+                        </div>
+                        <div class="bg-white text-emerald-700 w-9 h-9 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 ml-3">➔</div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <div id="surahListView" class="space-y-6">
-            <div class="relative max-w-xl mx-auto"><input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="Cari nama surat..." class="w-full p-4 pl-12 rounded-full border-2 border-emerald-50 bg-white text-sm focus:border-emerald-500 outline-none transition-all shadow-sm"><span class="absolute left-5 top-1/2 -translate-y-1/2 opacity-30">🔍</span></div>
-            <div id="gridSurah" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade"></div>
+        <!-- Surah List View -->
+        <div id="surahListView" class="space-y-3">
+            <div id="searchWrapper">
+                <input type="text" id="searchSurah" onkeyup="filterSurah()" placeholder="🔍  Cari nama surat...">
+                <div id="searchCount" class="text-[10px] font-bold text-slate-400 text-center mt-2 hidden"></div>
+            </div>
+            <div id="gridSurah"></div>
         </div>
 
-        <div id="readerView" class="hidden max-w-4xl mx-auto animate-fade">
+        <!-- Reader View -->
+        <div id="readerView" class="hidden animate-fade">
             <div id="mushafSourceWrap" class="hidden source-selector animate-fade">
                 <button onclick="setMushafSource('standard')" id="srcStandard" class="source-btn active">Waqaf & Ibtida</button>
                 <button onclick="setMushafSource('kemenag')" id="srcKemenag" class="source-btn">Kemenag (Tajwid)</button>
                 <button onclick="openTajwidModal()" id="btnTajwidInfo" class="hidden-element info-btn">Panduan Warna</button>
             </div>
-            <div id="surahHeader" class="mb-10 bg-emerald-900 rounded-[3rem] p-10 text-white shadow-2xl relative overflow-hidden border-b-8 border-emerald-600">
-                <h2 id="surahTitle" class="text-4xl font-black mb-1"></h2>
-                <p id="surahDesc" class="text-emerald-300 italic font-bold text-xs uppercase tracking-widest"></p>
-                <div class="mt-4 flex gap-2 relative z-10"><button onclick="toggleDisplay('audio-wrap')" class="bg-white/10 px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest">Audio</button><button onclick="toggleDisplay('trans-wrap')" class="bg-white/10 px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest">Arti</button></div>
+            <div id="surahHeader" class="mb-6 bg-emerald-900 rounded-[2rem] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden border-b-8 border-emerald-600">
+                <h2 id="surahTitle" class="text-2xl md:text-4xl font-black mb-1"></h2>
+                <p id="surahDesc" class="text-emerald-300 italic font-bold text-[10px] uppercase tracking-widest"></p>
+                <div class="mt-4 flex gap-2 relative z-10">
+                    <button onclick="toggleDisplay('audio-wrap')" class="bg-white/10 px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest">Audio</button>
+                    <button onclick="toggleDisplay('trans-wrap')" class="bg-white/10 px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest">Arti</button>
+                </div>
                 <div id="bgSurahName" class="absolute -right-10 -bottom-10 text-white/5 text-[10rem] font-arabic pointer-events-none select-none"></div>
             </div>
             <div id="contentContainer"></div>
         </div>
     </main>
 
+    <!-- Mushaf Nav -->
     <div id="mushafNav" class="hidden nav-wrapper animate-fade">
         <div class="nav-capsule">
-            <button onclick="changePage(-1)" class="w-12 h-12 bg-slate-100 rounded-full font-bold shadow-sm active:scale-90">←</button>
-            <div class="flex items-center gap-2"><span class="text-[9px] font-black text-slate-400">HAL</span><input type="number" id="jumpPageInput" class="page-input" value="1" onchange="renderPage(this.value)"><span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">/ 604</span></div>
-            <button onclick="changePage(1)" class="w-12 h-12 bg-slate-100 rounded-full font-bold shadow-sm active:scale-90">→</button>
+            <button onclick="changePage(-1)" class="w-12 h-12 bg-slate-100 rounded-full font-bold shadow-sm active:scale-90 text-lg">←</button>
+            <div class="flex items-center gap-2">
+                <span class="text-[9px] font-black text-slate-400">HAL</span>
+                <input type="number" id="jumpPageInput" class="page-input" value="1" onchange="renderPage(this.value)">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">/ 604</span>
+            </div>
+            <button onclick="changePage(1)" class="w-12 h-12 bg-slate-100 rounded-full font-bold shadow-sm active:scale-90 text-lg">→</button>
         </div>
     </div>
+
+    <!-- Scroll to top button -->
+    <button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
     <script>
         const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxdk9wC0GIPJSfIBy6AGdLCVljgjTFPwbx--UJXjdYurPMIP3Ysbm4k6Ofz3_zP2pXmZA/exec"; 
@@ -219,31 +432,119 @@
         let totalAudioDuration = 0; 
         let currentAudioSurahName = "-";
         let mushafSource = localStorage.getItem('mushaf_source') || 'standard';
+        let allSurahData = [];
 
         const SURAH_TO_PAGE = { 1:1, 2:2, 3:50, 4:77, 5:106, 6:128, 7:151, 8:177, 9:187, 10:208, 11:221, 12:235, 13:249, 14:255, 15:262, 16:267, 17:282, 18:293, 19:305, 20:312, 21:322, 22:332, 23:342, 24:350, 25:359, 26:367, 27:377, 28:385, 29:396, 30:404, 31:411, 32:415, 33:418, 34:428, 35:434, 36:440, 37:446, 38:453, 39:458, 40:467, 41:477, 42:483, 43:489, 44:496, 45:499, 46:502, 47:507, 48:511, 49:515, 50:518, 51:520, 52:523, 53:526, 54:528, 55:531, 56:534, 57:537, 58:542, 59:545, 60:549, 61:551, 62:553, 63:554, 64:556, 65:558, 66:560, 67:562, 68:564, 69:566, 70:568, 71:570, 72:572, 73:574, 74:575, 75:577, 76:578, 77:580, 78:582, 79:583, 80:585, 81:586, 82:587, 83:587, 84:589, 85:590, 86:591, 87:591, 88:592, 89:593, 90:594, 91:595, 92:595, 93:596, 94:596, 95:597, 96:597, 97:598, 98:598, 99:599, 100:599, 101:600, 102:600, 103:601, 104:601, 105:601, 106:602, 107:602, 108:602, 109:603, 110:603, 111:603, 112:604, 113:604, 114:604 };
+
+        // Scroll to top button visibility
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 300) btn.classList.add('visible');
+            else btn.classList.remove('visible');
+        });
 
         document.addEventListener('DOMContentLoaded', () => { 
             if (USER_EMAIL || IS_GUEST) { 
                 document.getElementById('loginSection').classList.add('hidden'); 
                 document.getElementById('emailSection').classList.remove('hidden'); 
-                
-                // BARIS INI UNTUK MENAMPILKAN EMAIL DI SAMPING USER:
                 document.getElementById('displayMode').innerText = IS_GUEST ? "MODE TAMU" : USER_EMAIL;
-                
                 fetchLatestProgress(); 
             } 
             showSurahList(); 
         });
 
-        async function fetchLatestProgress() { if (IS_GUEST) { const local = localStorage.getItem('dqlp_last_read'); if (local) { LAST_READ_DATA = JSON.parse(local); updateResumeCard(); } } else if (USER_EMAIL) { try { const res = await fetch(`${GAS_WEBAPP_URL}?email=${USER_EMAIL}`); const stats = await res.json(); document.getElementById('statMinutes').innerHTML = `${stats.totalMinutes} <span class="text-[10px]">Min</span>`; document.getElementById('statEntries').innerText = stats.totalEntries; if (stats.lastRead) { LAST_READ_DATA = stats.lastRead; updateResumeCard(); } } catch (e) {} } }
+        async function fetchLatestProgress() { 
+            if (IS_GUEST) { 
+                const local = localStorage.getItem('dqlp_last_read'); 
+                if (local) { LAST_READ_DATA = JSON.parse(local); updateResumeCard(); } 
+            } else if (USER_EMAIL) { 
+                try { 
+                    const res = await fetch(`${GAS_WEBAPP_URL}?email=${USER_EMAIL}`); 
+                    const stats = await res.json(); 
+                    document.getElementById('statMinutes').innerHTML = `${stats.totalMinutes} <span class="text-[10px]">Min</span>`; 
+                    document.getElementById('statEntries').innerText = stats.totalEntries; 
+                    if (stats.lastRead) { LAST_READ_DATA = stats.lastRead; updateResumeCard(); } 
+                } catch (e) {} 
+            } 
+        }
 
-        function updateResumeCard() { if (LAST_READ_DATA && LAST_READ_DATA.sName) { document.getElementById('resumeCard').classList.remove('hidden'); if (LAST_READ_DATA.sName === 'Halaman') { document.getElementById('resumeText').innerText = `Halaman ${LAST_READ_DATA.aNum}`; } else { document.getElementById('resumeText').innerText = `${LAST_READ_DATA.sName} : Ayat ${LAST_READ_DATA.aNum}`; } currentSurahNum = LAST_READ_DATA.sNum; } }
+        function updateResumeCard() { 
+            if (LAST_READ_DATA && LAST_READ_DATA.sName) { 
+                document.getElementById('resumeCard').classList.add('visible'); 
+                if (LAST_READ_DATA.sName === 'Halaman') { 
+                    document.getElementById('resumeText').innerText = `Halaman ${LAST_READ_DATA.aNum}`; 
+                } else { 
+                    document.getElementById('resumeText').innerText = `${LAST_READ_DATA.sName} : Ayat ${LAST_READ_DATA.aNum}`; 
+                } 
+                currentSurahNum = LAST_READ_DATA.sNum; 
+            } 
+        }
 
-        function filterSurah() { const val = document.getElementById('searchSurah').value.toLowerCase(); document.querySelectorAll('#gridSurah > div').forEach(c => { const name = c.querySelector('h3').innerText.toLowerCase(); c.style.display = name.includes(val) ? "flex" : "none"; }); }
+        function filterSurah() { 
+            const val = document.getElementById('searchSurah').value.toLowerCase().trim(); 
+            let visible = 0;
+            document.querySelectorAll('#gridSurah .surah-card').forEach(c => { 
+                const name = c.querySelector('.surah-name').innerText.toLowerCase(); 
+                const show = !val || name.includes(val);
+                c.style.display = show ? "flex" : "none"; 
+                if (show) visible++;
+            }); 
+            const countEl = document.getElementById('searchCount');
+            if (val) {
+                countEl.classList.remove('hidden');
+                countEl.innerText = `${visible} surat ditemukan`;
+            } else {
+                countEl.classList.add('hidden');
+            }
+        }
 
-        async function showSurahList() { currentMode = 'list'; updateUI(); document.getElementById('surahListView').classList.remove('hidden'); document.getElementById('readerView').classList.add('hidden'); document.getElementById('navAction').classList.add('hidden'); document.getElementById('mushafNav').classList.add('hidden'); const res = await (await fetch('https://equran.id/api/v2/surat')).json(); document.getElementById('gridSurah').innerHTML = res.data.map(s => `<div onclick="handleSurahClick(${s.nomor})" class="bg-white p-6 rounded-3xl border-b-4 border-slate-100 hover:border-emerald-500 shadow-xl cursor-pointer flex justify-between items-center transition-all group animate-fade"><div class="flex items-center gap-4"><div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black text-[10px] group-hover:bg-emerald-600 group-hover:text-white transition-all">${s.nomor}</div><h3 class="font-bold text-slate-800 text-sm tracking-tight">${s.namaLatin}</h3></div><div class="text-xl font-arabic text-emerald-700 opacity-20 group-hover:opacity-100 transition-all">${s.nama}</div></div>`).join(''); }
+        async function showSurahList() { 
+            currentMode = 'list'; 
+            updateUI(); 
+            document.getElementById('surahListView').classList.remove('hidden'); 
+            document.getElementById('readerView').classList.add('hidden'); 
+            document.getElementById('navAction').classList.add('hidden'); 
+            document.getElementById('mushafNav').classList.add('hidden'); 
 
-        function handleSurahClick(num) { currentSurahNum = num; if (document.getElementById('viewModeToggle').innerText === 'Mode Tadarus') loadMushafPage(SURAH_TO_PAGE[num]); else loadSurah(num); }
+            // Use cached data if available
+            if (allSurahData.length > 0) { renderSurahGrid(allSurahData); return; }
+
+            document.getElementById('gridSurah').innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem 1rem;">
+                <div style="font-size:2rem; margin-bottom:0.75rem">📖</div>
+                <p style="color:#10b981; font-weight:800; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; animation: pulse 1.5s infinite;">Memuat daftar surat...</p>
+            </div>`;
+
+            try {
+                const res = await (await fetch('https://equran.id/api/v2/surat')).json(); 
+                allSurahData = res.data;
+                renderSurahGrid(allSurahData);
+            } catch(e) {
+                document.getElementById('gridSurah').innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:#ef4444; font-weight:700; font-size:0.8rem;">Gagal memuat. Periksa koneksi internet.</div>`;
+            }
+        }
+
+        function renderSurahGrid(data) {
+            const lastSurahNum = LAST_READ_DATA ? LAST_READ_DATA.sNum : null;
+            document.getElementById('gridSurah').innerHTML = data.map(s => `
+                <div onclick="handleSurahClick(${s.nomor})" class="surah-card" role="button" aria-label="Surat ${s.namaLatin}">
+                    ${lastSurahNum == s.nomor ? '<span class="last-read-badge">Terakhir</span>' : ''}
+                    <div style="display:flex; align-items:center; gap:0.625rem; min-width:0;">
+                        <div class="surah-num-badge">${s.nomor}</div>
+                        <div style="min-width:0;">
+                            <p class="surah-name" style="font-weight:800; font-size:0.8rem; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.namaLatin}</p>
+                            <p style="font-size:9px; color:#94a3b8; font-weight:600;">${s.jumlahAyat} ayat</p>
+                        </div>
+                    </div>
+                    <div class="surah-arabic-preview">${s.nama}</div>
+                </div>
+            `).join('');
+        }
+
+        function handleSurahClick(num) { 
+            currentSurahNum = num; 
+            if (document.getElementById('viewModeToggle').innerText.includes('Tadarus')) loadMushafPage(SURAH_TO_PAGE[num]); 
+            else loadSurah(num); 
+        }
 
         async function loadSurah(num, scrollToAyat = null, autoPlayFirst = false) {
             currentMode = 'tadarus'; updateUI(); currentSurahNum = num; readStartTime = Date.now();
@@ -251,33 +552,56 @@
             container.innerHTML = '<div class="text-center py-20 font-bold text-emerald-700 animate-pulse tracking-widest uppercase text-xs">Menyiapkan Tadarus...</div>';
             try {
                 const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
-                const data = res.data; document.getElementById('surahTitle').innerText = data.namaLatin; document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`; document.getElementById('bgSurahName').innerText = data.nama; currentAudioSurahName = data.namaLatin;
+                const data = res.data; 
+                document.getElementById('surahTitle').innerText = data.namaLatin; 
+                document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`; 
+                document.getElementById('bgSurahName').innerText = data.nama; 
+                currentAudioSurahName = data.namaLatin;
                 let basmalah = (num !== 1 && num !== 9) ? `<div class="basmalah-box animate-fade">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</div>` : "";
                 container.innerHTML = basmalah + data.ayat.map(item => {
                     const isLast = LAST_READ_DATA && LAST_READ_DATA.sName !== 'Halaman' && LAST_READ_DATA.sNum == num && LAST_READ_DATA.aNum == item.nomorAyat;
-                    return `<div id="ayat-${item.nomorAyat}" class="ayat-card ${isLast ? 'last-read-box shadow-xl' : ''} animate-fade"><div class="text-right"><p class="font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="ayat-num">${item.nomorAyat}</span></p></div><div class="audio-wrap ${showAudio ? '' : 'hidden-element'}"><audio onplay="trackStart()" onpause="trackEnd()" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat}, ${num})" id="audio-${item.nomorAyat}" controls><source src="${item.audio['05']}"></audio></div><div class="trans-wrap mt-8 border-t border-slate-50 pt-8 ${showTrans ? '' : 'hidden-element'}"><p class="text-slate-500 text-[11px] italic font-medium leading-loose">"${item.teksIndonesia}"</p></div><div class="mt-8 flex justify-center"><button onclick="saveProgress('${data.namaLatin.replace(/'/g, "\\'")}', ${item.nomorAyat}, ${num})" class="px-12 py-3.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border-b-4 transition-all active:scale-95 ${isLast ? 'bg-emerald-950 text-white border-black' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">${isLast ? 'BACAAN TERAKHIR YG TERSIMPAN ✓' : 'SIMPAN BACAAN'}</button></div></div>`}).join('');
-                if(scrollToAyat) setTimeout(() => document.getElementById(`ayat-${scrollToAyat}`).scrollIntoView({behavior:'smooth', block:'center'}), 600);
+                    return `<div id="ayat-${item.nomorAyat}" class="ayat-card ${isLast ? 'last-read-box shadow-xl' : ''} animate-fade">
+                        <div class="text-right"><p class="font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="ayat-num">${item.nomorAyat}</span></p></div>
+                        <div class="audio-wrap ${showAudio ? '' : 'hidden-element'}"><audio onplay="trackStart()" onpause="trackEnd()" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat}, ${num})" id="audio-${item.nomorAyat}" controls><source src="${item.audio['05']}"></audio></div>
+                        <div class="trans-wrap mt-6 border-t border-slate-50 pt-6 ${showTrans ? '' : 'hidden-element'}"><p class="text-slate-500 text-[11px] italic font-medium leading-loose">"${item.teksIndonesia}"</p></div>
+                        <div class="mt-6 flex justify-center">
+                            <button onclick="saveProgress('${data.namaLatin.replace(/'/g, "\\'")}', ${item.nomorAyat}, ${num})" 
+                                class="px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl border-b-4 transition-all active:scale-95 ${isLast ? 'bg-emerald-950 text-white border-black' : 'bg-emerald-600 text-white border-emerald-800 hover:bg-emerald-700'}">
+                                ${isLast ? 'BACAAN TERAKHIR TERSIMPAN ✓' : 'SIMPAN BACAAN'}
+                            </button>
+                        </div>
+                    </div>`;
+                }).join('');
+                if(scrollToAyat) setTimeout(() => document.getElementById(`ayat-${scrollToAyat}`)?.scrollIntoView({behavior:'smooth', block:'center'}), 600);
                 if(autoPlayFirst) setTimeout(() => { const a = document.getElementById('audio-1'); if(a) a.play(); }, 1000);
-            } catch (e) { container.innerHTML = "Gagal memuat."; }
+            } catch (e) { container.innerHTML = "<div style='text-align:center;padding:2rem;color:#ef4444;font-weight:700;'>Gagal memuat surat. Periksa koneksi.</div>"; }
         }
 
         function loadMushafPage(page) {
             currentMode = 'mushaf'; updateUI(); readStartTime = Date.now(); activePage = parseInt(page);
             const container = document.getElementById('contentContainer');
-            container.innerHTML = `<div class="mushaf-viewport" id="mushafTouchArea"><div class="mushaf-card" id="mushafFrame"><img src="" id="mushafImg" class="mushaf-img" alt="Mushaf"></div></div><div class="flex justify-center mt-2 pb-20"><button onclick="saveProgress('Halaman', activePage, 1)" class="bg-blue-600 text-white px-12 py-5 rounded-full font-black text-[10px] uppercase shadow-xl border-b-4 border-blue-900 active:scale-95 transition-all">SIMPAN BACAAN PD HALAMAN INI </button></div>`;
+            container.innerHTML = `<div class="mushaf-viewport" id="mushafTouchArea"><div class="mushaf-card" id="mushafFrame"><img src="" id="mushafImg" class="mushaf-img" alt="Mushaf"></div></div>
+            <div class="flex justify-center mt-4 pb-24">
+                <button onclick="saveProgress('Halaman', activePage, 1)" class="bg-blue-600 text-white px-10 py-4 rounded-full font-black text-[10px] uppercase shadow-xl border-b-4 border-blue-900 active:scale-95 transition-all">SIMPAN BACAAN HALAMAN INI</button>
+            </div>`;
             renderPage(activePage); setupTouchEvents();
         }
 
         function renderPage(page) {
             if (page < 1 || page > 604) return;
-            activePage = parseInt(page); const img = document.getElementById('mushafImg'); const frame = document.getElementById('mushafFrame'); if(!img) return;
-            frame.style.opacity = "0.6"; const pStr = String(activePage).padStart(3, '0');
+            activePage = parseInt(page); 
+            const img = document.getElementById('mushafImg'); 
+            const frame = document.getElementById('mushafFrame'); 
+            if(!img) return;
+            frame.style.opacity = "0.6"; 
+            const pStr = String(activePage).padStart(3, '0');
             img.src = (mushafSource === 'kemenag') ? `https://media.qurankemenag.net/khat2/QK_${pStr}.webp` : `https://quran.tampang.com/wp-content/uploads/quran2/${pStr}.webp`;
             img.onload = () => { frame.style.opacity = "1"; document.getElementById('jumpPageInput').value = activePage; };
             window.scrollTo(0,0);
         }
 
         function changePage(delta) { let next = activePage + (delta * -1); if (next >= 1 && next <= 604) renderPage(next); }
+
         function setupTouchEvents() {
             const area = document.getElementById('mushafTouchArea'); if(!area) return;
             let touchStartX = 0;
@@ -293,11 +617,21 @@
         async function saveProgress(sName, aNum, sNum) {
             const dur = Math.floor((Date.now() - readStartTime) / 1000);
             localStorage.setItem('dqlp_last_read', JSON.stringify({ sName, aNum, sNum }));
-            if (USER_EMAIL && !IS_GUEST) { try { await fetch(GAS_WEBAPP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ email: USER_EMAIL, surat: sName, ayat: aNum, surahNum: sNum, duration: dur, activityType: "Membaca" }) }); } catch (e) {} }
+            if (USER_EMAIL && !IS_GUEST) { 
+                try { 
+                    await fetch(GAS_WEBAPP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ email: USER_EMAIL, surat: sName, ayat: aNum, surahNum: sNum, duration: dur, activityType: "Membaca" }) }); 
+                } catch (e) {} 
+            }
             showToast(); setTimeout(() => location.reload(), 1200); 
         }
 
-        function resumeReading() { if(LAST_READ_DATA) { if (LAST_READ_DATA.sName === 'Halaman') loadMushafPage(LAST_READ_DATA.aNum); else loadSurah(LAST_READ_DATA.sNum, LAST_READ_DATA.aNum); } }
+        function resumeReading() { 
+            if(LAST_READ_DATA) { 
+                if (LAST_READ_DATA.sName === 'Halaman') loadMushafPage(LAST_READ_DATA.aNum); 
+                else loadSurah(LAST_READ_DATA.sNum, LAST_READ_DATA.aNum); 
+            } 
+        }
+
         function updateUI() {
             const isM = currentMode === 'mushaf';
             document.getElementById('viewModeToggle').innerText = isM ? 'Mode Tadarus' : 'Mode Mushaf';
@@ -310,40 +644,37 @@
             document.getElementById('srcStandard').classList.toggle('active', mushafSource === 'standard');
             document.getElementById('srcKemenag').classList.toggle('active', mushafSource === 'kemenag');
             document.getElementById('btnTajwidInfo').classList.toggle('hidden-element', mushafSource !== 'kemenag');
-        // --- MASUKKAN KODE ACCORDION DI SINI ---
-    const accBtn = document.getElementById('toggleStatsBtn');
-    const accContent = document.getElementById('accordionContent');
-    
-    if (isM) {
-        accBtn.classList.remove('hidden');    // Munculkan tombol "Info User ▾"
-        accContent.classList.add('hidden');    // Sembunyikan statistik secara otomatis
-        accBtn.innerText = "Info User ▾";
-    } else {
-        accBtn.classList.add('hidden');       // Sembunyikan tombol di mode lain
-        accContent.classList.remove('hidden'); // Tampilkan kembali statistik di mode tadarus/list
-    }
-    // ---------------------------------------
 
-} // Ini adalah kurung penutup fungsi updateUI
+            const accBtn = document.getElementById('toggleStatsBtn');
+            const accContent = document.getElementById('accordionContent');
+            if (isM) {
+                accBtn.classList.remove('hidden');
+                accContent.classList.add('hidden');
+                accBtn.innerText = "Info ▾";
+            } else {
+                accBtn.classList.add('hidden');
+                accContent.classList.remove('hidden');
+            }
+        }
 
-// Letakkan di sini (sebelum fungsi setIdentity)
-function toggleAccordion() {
-    const content = document.getElementById('accordionContent');
-    const btn = document.getElementById('toggleStatsBtn');
-    if(content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        btn.innerText = "Info User ▴";
-    } else {
-        content.classList.add('hidden');
-        btn.innerText = "Info User ▾";
-    }
-}
+        function toggleAccordion() {
+            const content = document.getElementById('accordionContent');
+            const btn = document.getElementById('toggleStatsBtn');
+            if(content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                btn.innerText = "Info ▴";
+            } else {
+                content.classList.add('hidden');
+                btn.innerText = "Info ▾";
+            }
+        }
+
         function setIdentity() { const e = document.getElementById('inputEmail').value.trim(); if(e.includes('@')) { localStorage.setItem('dqlp_email', e); localStorage.setItem('dqlp_guest', 'false'); location.reload(); } }
         function startAsGuest() { localStorage.setItem('dqlp_guest', 'true'); localStorage.removeItem('dqlp_email'); location.reload(); }
         function logout() { localStorage.clear(); location.reload(); }
         function toggleViewMode() { if(currentMode === 'tadarus') loadMushafPage(SURAH_TO_PAGE[currentSurahNum]); else loadSurah(currentSurahNum); }
         function toggleDisplay(cls) { const els = document.getElementsByClassName(cls); for(let el of els) el.classList.toggle('hidden-element'); }
-        function toggleAutoNext() { isAutoNextSurah = !isAutoNextSurah; document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio Next Surat: ON" : "Audio Next Surat: OFF"; document.getElementById('autoNextBtn').classList.toggle('active-btn', isAutoNextSurah); }
+        function toggleAutoNext() { isAutoNextSurah = !isAutoNextSurah; document.getElementById('autoNextBtn').innerText = isAutoNextSurah ? "Audio Next: ON" : "Audio Next: OFF"; document.getElementById('autoNextBtn').classList.toggle('active-btn', isAutoNextSurah); }
         function trackStart() { audioStartTime = Date.now(); }
         function trackEnd() { if (audioStartTime) { totalAudioDuration += Math.floor((Date.now() - audioStartTime) / 1000); audioStartTime = null; } }
         function playNext(c, t, s) { trackEnd(); if(c < t) { const n = document.getElementById(`audio-${c + 1}`); if(n) { n.scrollIntoView({behavior:'smooth', block:'center'}); n.play(); } } else if (isAutoNextSurah && s < 114) { loadSurah(s + 1, null, true); } }
