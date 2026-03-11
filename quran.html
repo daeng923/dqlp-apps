@@ -432,7 +432,125 @@
         let totalAudioDuration = 0; 
         let currentAudioSurahName = "-";
         let mushafSource = localStorage.getItem('mushaf_source') || 'standard';
-        let allSurahData = [];
+        // ── DATA SURAT LENGKAP (embedded, tidak butuh API) ──────────────────
+        const SURAH_DATA = [
+            {nomor:1,namaLatin:"Al-Fatihah",nama:"الفاتحة",arti:"Pembukaan",jumlahAyat:7},
+            {nomor:2,namaLatin:"Al-Baqarah",nama:"البقرة",arti:"Sapi Betina",jumlahAyat:286},
+            {nomor:3,namaLatin:"Ali 'Imran",nama:"آل عمران",arti:"Keluarga Imran",jumlahAyat:200},
+            {nomor:4,namaLatin:"An-Nisa'",nama:"النساء",arti:"Perempuan",jumlahAyat:176},
+            {nomor:5,namaLatin:"Al-Ma'idah",nama:"المائدة",arti:"Hidangan",jumlahAyat:120},
+            {nomor:6,namaLatin:"Al-An'am",nama:"الأنعام",arti:"Binatang Ternak",jumlahAyat:165},
+            {nomor:7,namaLatin:"Al-A'raf",nama:"الأعراف",arti:"Tempat Tertinggi",jumlahAyat:206},
+            {nomor:8,namaLatin:"Al-Anfal",nama:"الأنفال",arti:"Rampasan Perang",jumlahAyat:75},
+            {nomor:9,namaLatin:"At-Taubah",nama:"التوبة",arti:"Pengampunan",jumlahAyat:129},
+            {nomor:10,namaLatin:"Yunus",nama:"يونس",arti:"Nabi Yunus",jumlahAyat:109},
+            {nomor:11,namaLatin:"Hud",nama:"هود",arti:"Nabi Hud",jumlahAyat:123},
+            {nomor:12,namaLatin:"Yusuf",nama:"يوسف",arti:"Nabi Yusuf",jumlahAyat:111},
+            {nomor:13,namaLatin:"Ar-Ra'd",nama:"الرعد",arti:"Guruh",jumlahAyat:43},
+            {nomor:14,namaLatin:"Ibrahim",nama:"ابراهيم",arti:"Nabi Ibrahim",jumlahAyat:52},
+            {nomor:15,namaLatin:"Al-Hijr",nama:"الحجر",arti:"Daerah Al-Hijr",jumlahAyat:99},
+            {nomor:16,namaLatin:"An-Nahl",nama:"النحل",arti:"Lebah",jumlahAyat:128},
+            {nomor:17,namaLatin:"Al-Isra'",nama:"الإسراء",arti:"Perjalanan Malam",jumlahAyat:111},
+            {nomor:18,namaLatin:"Al-Kahfi",nama:"الكهف",arti:"Gua",jumlahAyat:110},
+            {nomor:19,namaLatin:"Maryam",nama:"مريم",arti:"Maryam",jumlahAyat:98},
+            {nomor:20,namaLatin:"Ta Ha",nama:"طه",arti:"Ta Ha",jumlahAyat:135},
+            {nomor:21,namaLatin:"Al-Anbiya'",nama:"الأنبياء",arti:"Para Nabi",jumlahAyat:112},
+            {nomor:22,namaLatin:"Al-Hajj",nama:"الحج",arti:"Haji",jumlahAyat:78},
+            {nomor:23,namaLatin:"Al-Mu'minun",nama:"المؤمنون",arti:"Orang-orang Beriman",jumlahAyat:118},
+            {nomor:24,namaLatin:"An-Nur",nama:"النور",arti:"Cahaya",jumlahAyat:64},
+            {nomor:25,namaLatin:"Al-Furqan",nama:"الفرقان",arti:"Pembeda",jumlahAyat:77},
+            {nomor:26,namaLatin:"Asy-Syu'ara'",nama:"الشعراء",arti:"Para Penyair",jumlahAyat:227},
+            {nomor:27,namaLatin:"An-Naml",nama:"النمل",arti:"Semut",jumlahAyat:93},
+            {nomor:28,namaLatin:"Al-Qasas",nama:"القصص",arti:"Kisah-kisah",jumlahAyat:88},
+            {nomor:29,namaLatin:"Al-'Ankabut",nama:"العنكبوت",arti:"Laba-laba",jumlahAyat:69},
+            {nomor:30,namaLatin:"Ar-Rum",nama:"الروم",arti:"Bangsa Romawi",jumlahAyat:60},
+            {nomor:31,namaLatin:"Luqman",nama:"لقمان",arti:"Luqman",jumlahAyat:34},
+            {nomor:32,namaLatin:"As-Sajdah",nama:"السجدة",arti:"Sujud",jumlahAyat:30},
+            {nomor:33,namaLatin:"Al-Ahzab",nama:"الأحزاب",arti:"Golongan-golongan Bersekutu",jumlahAyat:73},
+            {nomor:34,namaLatin:"Saba'",nama:"سبإ",arti:"Kaum Saba",jumlahAyat:54},
+            {nomor:35,namaLatin:"Fatir",nama:"فاطر",arti:"Pencipta",jumlahAyat:45},
+            {nomor:36,namaLatin:"Ya Sin",nama:"يس",arti:"Ya Sin",jumlahAyat:83},
+            {nomor:37,namaLatin:"As-Saffat",nama:"الصافات",arti:"Yang Bershaf-shaf",jumlahAyat:182},
+            {nomor:38,namaLatin:"Sad",nama:"ص",arti:"Sad",jumlahAyat:88},
+            {nomor:39,namaLatin:"Az-Zumar",nama:"الزمر",arti:"Rombongan-rombongan",jumlahAyat:75},
+            {nomor:40,namaLatin:"Gafir",nama:"غافر",arti:"Yang Maha Pengampun",jumlahAyat:85},
+            {nomor:41,namaLatin:"Fussilat",nama:"فصلت",arti:"Yang Dijelaskan",jumlahAyat:54},
+            {nomor:42,namaLatin:"Asy-Syura",nama:"الشورى",arti:"Musyawarah",jumlahAyat:53},
+            {nomor:43,namaLatin:"Az-Zukhruf",nama:"الزخرف",arti:"Perhiasan",jumlahAyat:89},
+            {nomor:44,namaLatin:"Ad-Dukhan",nama:"الدخان",arti:"Kabut",jumlahAyat:59},
+            {nomor:45,namaLatin:"Al-Jasiyah",nama:"الجاثية",arti:"Yang Berlutut",jumlahAyat:37},
+            {nomor:46,namaLatin:"Al-Ahqaf",nama:"الأحقاف",arti:"Bukit-bukit Pasir",jumlahAyat:35},
+            {nomor:47,namaLatin:"Muhammad",nama:"محمد",arti:"Nabi Muhammad",jumlahAyat:38},
+            {nomor:48,namaLatin:"Al-Fath",nama:"الفتح",arti:"Kemenangan",jumlahAyat:29},
+            {nomor:49,namaLatin:"Al-Hujurat",nama:"الحجرات",arti:"Kamar-kamar",jumlahAyat:18},
+            {nomor:50,namaLatin:"Qaf",nama:"ق",arti:"Qaf",jumlahAyat:45},
+            {nomor:51,namaLatin:"Az-Zariyat",nama:"الذاريات",arti:"Angin yang Menerbangkan",jumlahAyat:60},
+            {nomor:52,namaLatin:"At-Tur",nama:"الطور",arti:"Bukit",jumlahAyat:49},
+            {nomor:53,namaLatin:"An-Najm",nama:"النجم",arti:"Bintang",jumlahAyat:62},
+            {nomor:54,namaLatin:"Al-Qamar",nama:"القمر",arti:"Bulan",jumlahAyat:55},
+            {nomor:55,namaLatin:"Ar-Rahman",nama:"الرحمن",arti:"Yang Maha Pemurah",jumlahAyat:78},
+            {nomor:56,namaLatin:"Al-Waqi'ah",nama:"الواقعة",arti:"Hari Kiamat",jumlahAyat:96},
+            {nomor:57,namaLatin:"Al-Hadid",nama:"الحديد",arti:"Besi",jumlahAyat:29},
+            {nomor:58,namaLatin:"Al-Mujadilah",nama:"المجادلة",arti:"Wanita yang Mengajukan Gugatan",jumlahAyat:22},
+            {nomor:59,namaLatin:"Al-Hasyr",nama:"الحشر",arti:"Pengusiran",jumlahAyat:24},
+            {nomor:60,namaLatin:"Al-Mumtahanah",nama:"الممتحنة",arti:"Perempuan yang Diuji",jumlahAyat:13},
+            {nomor:61,namaLatin:"As-Saf",nama:"الصف",arti:"Barisan",jumlahAyat:14},
+            {nomor:62,namaLatin:"Al-Jumu'ah",nama:"الجمعة",arti:"Hari Jumat",jumlahAyat:11},
+            {nomor:63,namaLatin:"Al-Munafiqun",nama:"المنافقون",arti:"Orang-orang Munafik",jumlahAyat:11},
+            {nomor:64,namaLatin:"At-Tagabun",nama:"التغابن",arti:"Hari Dinampakkan Kesalahan",jumlahAyat:18},
+            {nomor:65,namaLatin:"At-Talaq",nama:"الطلاق",arti:"Talak",jumlahAyat:12},
+            {nomor:66,namaLatin:"At-Tahrim",nama:"التحريم",arti:"Mengharamkan",jumlahAyat:12},
+            {nomor:67,namaLatin:"Al-Mulk",nama:"الملك",arti:"Kerajaan",jumlahAyat:30},
+            {nomor:68,namaLatin:"Al-Qalam",nama:"القلم",arti:"Pena",jumlahAyat:52},
+            {nomor:69,namaLatin:"Al-Haqqah",nama:"الحاقة",arti:"Hari Kiamat",jumlahAyat:52},
+            {nomor:70,namaLatin:"Al-Ma'arij",nama:"المعارج",arti:"Tempat Naik",jumlahAyat:44},
+            {nomor:71,namaLatin:"Nuh",nama:"نوح",arti:"Nabi Nuh",jumlahAyat:28},
+            {nomor:72,namaLatin:"Al-Jinn",nama:"الجن",arti:"Jin",jumlahAyat:28},
+            {nomor:73,namaLatin:"Al-Muzzammil",nama:"المزمل",arti:"Orang yang Berselimut",jumlahAyat:20},
+            {nomor:74,namaLatin:"Al-Muddassir",nama:"المدثر",arti:"Orang yang Berkemul",jumlahAyat:56},
+            {nomor:75,namaLatin:"Al-Qiyamah",nama:"القيامة",arti:"Hari Kiamat",jumlahAyat:40},
+            {nomor:76,namaLatin:"Al-Insan",nama:"الإنسان",arti:"Manusia",jumlahAyat:31},
+            {nomor:77,namaLatin:"Al-Mursalat",nama:"المرسلات",arti:"Malaikat yang Diutus",jumlahAyat:50},
+            {nomor:78,namaLatin:"An-Naba'",nama:"النبإ",arti:"Berita Besar",jumlahAyat:40},
+            {nomor:79,namaLatin:"An-Nazi'at",nama:"النازعات",arti:"Malaikat yang Mencabut",jumlahAyat:46},
+            {nomor:80,namaLatin:"'Abasa",nama:"عبس",arti:"Bermuka Masam",jumlahAyat:42},
+            {nomor:81,namaLatin:"At-Takwir",nama:"التكوير",arti:"Penggulungan",jumlahAyat:29},
+            {nomor:82,namaLatin:"Al-Infitar",nama:"الإنفطار",arti:"Terbelah",jumlahAyat:19},
+            {nomor:83,namaLatin:"Al-Mutaffifin",nama:"المطففين",arti:"Orang yang Curang",jumlahAyat:36},
+            {nomor:84,namaLatin:"Al-Insyiqaq",nama:"الإنشقاق",arti:"Terbelah",jumlahAyat:25},
+            {nomor:85,namaLatin:"Al-Buruj",nama:"البروج",arti:"Gugusan Bintang",jumlahAyat:22},
+            {nomor:86,namaLatin:"At-Tariq",nama:"الطارق",arti:"Yang Datang di Malam Hari",jumlahAyat:17},
+            {nomor:87,namaLatin:"Al-A'la",nama:"الأعلى",arti:"Yang Paling Tinggi",jumlahAyat:19},
+            {nomor:88,namaLatin:"Al-Gasiyah",nama:"الغاشية",arti:"Hari Pembalasan",jumlahAyat:26},
+            {nomor:89,namaLatin:"Al-Fajr",nama:"الفجر",arti:"Fajar",jumlahAyat:30},
+            {nomor:90,namaLatin:"Al-Balad",nama:"البلد",arti:"Negeri",jumlahAyat:20},
+            {nomor:91,namaLatin:"Asy-Syams",nama:"الشمس",arti:"Matahari",jumlahAyat:15},
+            {nomor:92,namaLatin:"Al-Lail",nama:"الليل",arti:"Malam",jumlahAyat:21},
+            {nomor:93,namaLatin:"Ad-Duha",nama:"الضحى",arti:"Waktu Dhuha",jumlahAyat:11},
+            {nomor:94,namaLatin:"Al-Insyirah",nama:"الشرح",arti:"Kelapangan",jumlahAyat:8},
+            {nomor:95,namaLatin:"At-Tin",nama:"التين",arti:"Buah Tin",jumlahAyat:8},
+            {nomor:96,namaLatin:"Al-'Alaq",nama:"العلق",arti:"Segumpal Darah",jumlahAyat:19},
+            {nomor:97,namaLatin:"Al-Qadr",nama:"القدر",arti:"Kemuliaan",jumlahAyat:5},
+            {nomor:98,namaLatin:"Al-Bayyinah",nama:"البينة",arti:"Bukti Nyata",jumlahAyat:8},
+            {nomor:99,namaLatin:"Az-Zalzalah",nama:"الزلزلة",arti:"Kegoncangan",jumlahAyat:8},
+            {nomor:100,namaLatin:"Al-'Adiyat",nama:"العاديات",arti:"Kuda Perang yang Berlari",jumlahAyat:11},
+            {nomor:101,namaLatin:"Al-Qari'ah",nama:"القارعة",arti:"Hari Kiamat",jumlahAyat:11},
+            {nomor:102,namaLatin:"At-Takasur",nama:"التكاثر",arti:"Bermegah-megahan",jumlahAyat:8},
+            {nomor:103,namaLatin:"Al-'Asr",nama:"العصر",arti:"Masa",jumlahAyat:3},
+            {nomor:104,namaLatin:"Al-Humazah",nama:"الهمزة",arti:"Pengumpat",jumlahAyat:9},
+            {nomor:105,namaLatin:"Al-Fil",nama:"الفيل",arti:"Gajah",jumlahAyat:5},
+            {nomor:106,namaLatin:"Quraisy",nama:"قريش",arti:"Suku Quraisy",jumlahAyat:4},
+            {nomor:107,namaLatin:"Al-Ma'un",nama:"الماعون",arti:"Barang yang Berguna",jumlahAyat:7},
+            {nomor:108,namaLatin:"Al-Kausar",nama:"الكوثر",arti:"Nikmat yang Banyak",jumlahAyat:3},
+            {nomor:109,namaLatin:"Al-Kafirun",nama:"الكافرون",arti:"Orang-orang Kafir",jumlahAyat:6},
+            {nomor:110,namaLatin:"An-Nasr",nama:"النصر",arti:"Pertolongan",jumlahAyat:3},
+            {nomor:111,namaLatin:"Al-Lahab",nama:"المسد",arti:"Gejolak Api",jumlahAyat:5},
+            {nomor:112,namaLatin:"Al-Ikhlas",nama:"الإخلاص",arti:"Ikhlas",jumlahAyat:4},
+            {nomor:113,namaLatin:"Al-Falaq",nama:"الفلق",arti:"Subuh",jumlahAyat:5},
+            {nomor:114,namaLatin:"An-Nas",nama:"الناس",arti:"Manusia",jumlahAyat:6}
+        ];
+
+        let allSurahData = SURAH_DATA; // langsung pakai data lokal
 
         const SURAH_TO_PAGE = { 1:1, 2:2, 3:50, 4:77, 5:106, 6:128, 7:151, 8:177, 9:187, 10:208, 11:221, 12:235, 13:249, 14:255, 15:262, 16:267, 17:282, 18:293, 19:305, 20:312, 21:322, 22:332, 23:342, 24:350, 25:359, 26:367, 27:377, 28:385, 29:396, 30:404, 31:411, 32:415, 33:418, 34:428, 35:434, 36:440, 37:446, 38:453, 39:458, 40:467, 41:477, 42:483, 43:489, 44:496, 45:499, 46:502, 47:507, 48:511, 49:515, 50:518, 51:520, 52:523, 53:526, 54:528, 55:531, 56:534, 57:537, 58:542, 59:545, 60:549, 61:551, 62:553, 63:554, 64:556, 65:558, 66:560, 67:562, 68:564, 69:566, 70:568, 71:570, 72:572, 73:574, 74:575, 75:577, 76:578, 77:580, 78:582, 79:583, 80:585, 81:586, 82:587, 83:587, 84:589, 85:590, 86:591, 87:591, 88:592, 89:593, 90:594, 91:595, 92:595, 93:596, 94:596, 95:597, 96:597, 97:598, 98:598, 99:599, 100:599, 101:600, 102:600, 103:601, 104:601, 105:601, 106:602, 107:602, 108:602, 109:603, 110:603, 111:603, 112:604, 113:604, 114:604 };
 
@@ -498,29 +616,15 @@
             }
         }
 
-        async function showSurahList() { 
+        function showSurahList() { 
             currentMode = 'list'; 
             updateUI(); 
             document.getElementById('surahListView').classList.remove('hidden'); 
             document.getElementById('readerView').classList.add('hidden'); 
             document.getElementById('navAction').classList.add('hidden'); 
             document.getElementById('mushafNav').classList.add('hidden'); 
-
-            // Use cached data if available
-            if (allSurahData.length > 0) { renderSurahGrid(allSurahData); return; }
-
-            document.getElementById('gridSurah').innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem 1rem;">
-                <div style="font-size:2rem; margin-bottom:0.75rem">📖</div>
-                <p style="color:#10b981; font-weight:800; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; animation: pulse 1.5s infinite;">Memuat daftar surat...</p>
-            </div>`;
-
-            try {
-                const res = await (await fetch('https://equran.id/api/v2/surat')).json(); 
-                allSurahData = res.data;
-                renderSurahGrid(allSurahData);
-            } catch(e) {
-                document.getElementById('gridSurah').innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:#ef4444; font-weight:700; font-size:0.8rem;">Gagal memuat. Periksa koneksi internet.</div>`;
-            }
+            // Data embedded lokal — langsung render tanpa fetch
+            renderSurahGrid(allSurahData);
         }
 
         function renderSurahGrid(data) {
@@ -546,13 +650,61 @@
             else loadSurah(num); 
         }
 
+        async function fetchSurahData(num) {
+            // Coba equran.id dulu, fallback ke API lain jika gagal
+            const apis = [
+                () => fetch(`https://equran.id/api/v2/surat/${num}`).then(r => r.json()).then(r => {
+                    const d = r.data;
+                    return {
+                        namaLatin: d.namaLatin, arti: d.arti, jumlahAyat: d.jumlahAyat, nama: d.nama,
+                        ayat: d.ayat.map(a => ({
+                            nomorAyat: a.nomorAyat,
+                            teksArab: a.teksArab,
+                            teksIndonesia: a.teksIndonesia,
+                            audioUrl: a.audio['05']
+                        }))
+                    };
+                }),
+                () => Promise.all([
+                    fetch(`https://api.alquran.cloud/v1/surah/${num}`).then(r => r.json()),
+                    fetch(`https://api.alquran.cloud/v1/surah/${num}/id.indonesian`).then(r => r.json())
+                ]).then(([arab, terjemah]) => {
+                    const info = SURAH_DATA.find(s => s.nomor === num);
+                    return {
+                        namaLatin: info.namaLatin, arti: info.arti, jumlahAyat: info.jumlahAyat, nama: info.nama,
+                        ayat: arab.data.ayahs.map((a, i) => ({
+                            nomorAyat: a.numberInSurah,
+                            teksArab: a.text,
+                            teksIndonesia: terjemah.data.ayahs[i]?.text || '',
+                            audioUrl: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${a.number}.mp3`
+                        }))
+                    };
+                }),
+                () => fetch(`https://quran-api.santrikoding.com/api/surah/${num}`).then(r => r.json()).then(d => {
+                    const info = SURAH_DATA.find(s => s.nomor === num);
+                    return {
+                        namaLatin: info.namaLatin, arti: info.arti, jumlahAyat: info.jumlahAyat, nama: info.nama,
+                        ayat: d.ayat.map(a => ({
+                            nomorAyat: a.nomor,
+                            teksArab: a.ar,
+                            teksIndonesia: a.id,
+                            audioUrl: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${a.id}.mp3`
+                        }))
+                    };
+                })
+            ];
+            for (const apiFn of apis) {
+                try { return await apiFn(); } catch(e) { continue; }
+            }
+            throw new Error('Semua API gagal');
+        }
+
         async function loadSurah(num, scrollToAyat = null, autoPlayFirst = false) {
             currentMode = 'tadarus'; updateUI(); currentSurahNum = num; readStartTime = Date.now();
             const container = document.getElementById('contentContainer');
             container.innerHTML = '<div class="text-center py-20 font-bold text-emerald-700 animate-pulse tracking-widest uppercase text-xs">Menyiapkan Tadarus...</div>';
             try {
-                const res = await (await fetch(`https://equran.id/api/v2/surat/${num}`)).json();
-                const data = res.data; 
+                const data = await fetchSurahData(num);
                 document.getElementById('surahTitle').innerText = data.namaLatin; 
                 document.getElementById('surahDesc').innerText = `${data.arti} • ${data.jumlahAyat} Ayat`; 
                 document.getElementById('bgSurahName').innerText = data.nama; 
@@ -562,7 +714,7 @@
                     const isLast = LAST_READ_DATA && LAST_READ_DATA.sName !== 'Halaman' && LAST_READ_DATA.sNum == num && LAST_READ_DATA.aNum == item.nomorAyat;
                     return `<div id="ayat-${item.nomorAyat}" class="ayat-card ${isLast ? 'last-read-box shadow-xl' : ''} animate-fade">
                         <div class="text-right"><p class="font-arabic text-slate-800 mb-6" dir="rtl">${item.teksArab} <span class="ayat-num">${item.nomorAyat}</span></p></div>
-                        <div class="audio-wrap ${showAudio ? '' : 'hidden-element'}"><audio onplay="trackStart()" onpause="trackEnd()" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat}, ${num})" id="audio-${item.nomorAyat}" controls><source src="${item.audio['05']}"></audio></div>
+                        <div class="audio-wrap ${showAudio ? '' : 'hidden-element'}"><audio onplay="trackStart()" onpause="trackEnd()" onended="playNext(${item.nomorAyat}, ${data.jumlahAyat}, ${num})" id="audio-${item.nomorAyat}" controls><source src="${item.audioUrl}"></audio></div>
                         <div class="trans-wrap mt-6 border-t border-slate-50 pt-6 ${showTrans ? '' : 'hidden-element'}"><p class="text-slate-500 text-[11px] italic font-medium leading-loose">"${item.teksIndonesia}"</p></div>
                         <div class="mt-6 flex justify-center">
                             <button onclick="saveProgress('${data.namaLatin.replace(/'/g, "\\'")}', ${item.nomorAyat}, ${num})" 
@@ -574,7 +726,14 @@
                 }).join('');
                 if(scrollToAyat) setTimeout(() => document.getElementById(`ayat-${scrollToAyat}`)?.scrollIntoView({behavior:'smooth', block:'center'}), 600);
                 if(autoPlayFirst) setTimeout(() => { const a = document.getElementById('audio-1'); if(a) a.play(); }, 1000);
-            } catch (e) { container.innerHTML = "<div style='text-align:center;padding:2rem;color:#ef4444;font-weight:700;'>Gagal memuat surat. Periksa koneksi.</div>"; }
+            } catch (e) { 
+                container.innerHTML = `<div style='text-align:center;padding:3rem 1rem;'>
+                    <div style='font-size:2rem;margin-bottom:1rem'>⚠️</div>
+                    <p style='color:#ef4444;font-weight:800;font-size:0.85rem;margin-bottom:0.5rem;'>Gagal memuat isi surat</p>
+                    <p style='color:#94a3b8;font-size:0.75rem;'>Periksa koneksi internet Anda,<br>lalu coba lagi.</p>
+                    <button onclick='loadSurah(${num})' style='margin-top:1.5rem;background:#059669;color:white;padding:0.75rem 2rem;border-radius:9999px;font-weight:800;font-size:0.75rem;border:none;cursor:pointer;'>COBA LAGI</button>
+                </div>`; 
+            }
         }
 
         function loadMushafPage(page) {
