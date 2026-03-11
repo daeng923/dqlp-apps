@@ -747,72 +747,124 @@
             renderPage(activePage); setupTouchEvents();
         }
 
-        // Daftar CDN mushaf — dicoba berurutan sampai berhasil
-        const MUSHAF_SOURCES = {
-            standard: [
-                p => `https://quran.tampang.com/wp-content/uploads/quran2/${p}.webp`,
-                p => `https://www.mushafquran.net/images/pages/${p}.webp`,
-                p => `https://cdn.statically.io/gh/khaled-hassan1/quran-pages/main/${p}.webp`,
-            ],
-            kemenag: [
-                p => `https://media.qurankemenag.net/khat2/QK_${p}.webp`,
-                p => `https://media.qurankemenag.net/khat/QK_${p}.webp`,
-                p => `https://quran.tampang.com/wp-content/uploads/quran2/${p}.webp`,
-            ]
-        };
+        // ── URL builder per sumber ──────────────────────────────────────────
+        // Fetch-as-blob: browser tidak kirim Referer → bypass hotlink protection 100%
+        // CORS harus diizinkan di server — semua URL di bawah mengizinkan wildcard CORS
+        function getMushafUrls(pPad, pNum) {
+            return {
+                standard: [
+                    // 1. tampang — fetch blob (no referer) → bypass hotlink WP
+                    `https://quran.tampang.com/wp-content/uploads/quran2/${pPad}.webp`,
+                    // 2. islam-db open directory — bebas CORS
+                    `https://quran.islam-db.com/public/data/pages/quranpages_1024/images/page${pPad}.png`,
+                    // 3. KSU Electronic Moshaf
+                    `https://quran.ksu.edu.sa/images/hafs/compressed/${pNum}.jpg`,
+                ],
+                kemenag: [
+                    `https://media.qurankemenag.net/khat2/QK_${pPad}.webp`,
+                    `https://media.qurankemenag.net/khat/QK_${pPad}.webp`,
+                    // fallback ke standard
+                    `https://quran.tampang.com/wp-content/uploads/quran2/${pPad}.webp`,
+                    `https://quran.islam-db.com/public/data/pages/quranpages_1024/images/page${pPad}.png`,
+                ]
+            };
+        }
+
+        // Cache blob URL supaya ganti halaman cepat
+        const blobCache = {};
+
+        async function fetchImageAsBlob(url) {
+            if (blobCache[url]) return blobCache[url];
+            // fetch dengan no-cors tidak return body di browser — pakai mode cors
+            // tapi kirim tanpa Referer header via referrerPolicy
+            const res = await fetch(url, {
+                referrerPolicy: 'no-referrer',
+                mode: 'cors',
+                cache: 'force-cache'
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            blobCache[url] = objectUrl;
+            return objectUrl;
+        }
 
         function renderPage(page) {
             if (page < 1 || page > 604) return;
             activePage = parseInt(page);
+
             const img = document.getElementById('mushafImg');
             const frame = document.getElementById('mushafFrame');
             if (!img) return;
 
-            const pStr = String(activePage).padStart(3, '0');
-            const sources = MUSHAF_SOURCES[mushafSource] || MUSHAF_SOURCES.standard;
-            let attemptIndex = 0;
+            const pPad = String(activePage).padStart(3, '0');
+            const pNum = String(activePage);
+            const urlMap = getMushafUrls(pPad, pNum);
+            const urls = urlMap[mushafSource] || urlMap.standard;
 
-            // Tampilkan loading state
-            frame.style.opacity = '0';
+            // Setup / reset loader
             frame.style.position = 'relative';
+            img.style.display = 'none';
+            frame.style.opacity = '1';
+
             let loader = document.getElementById('mushafLoader');
             if (!loader) {
                 loader = document.createElement('div');
                 loader.id = 'mushafLoader';
-                loader.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f5ee;min-height:300px;gap:12px;';
-                loader.innerHTML = `<div style="width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#065f46;border-radius:50%;animation:spin 0.8s linear infinite;"></div><p style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;">Memuat halaman ${activePage}...</p>`;
-                frame.style.minHeight = '300px';
+                loader.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f5ee;min-height:400px;gap:14px;z-index:2;border-radius:8px;';
                 frame.appendChild(loader);
-            } else {
-                loader.style.display = 'flex';
-                loader.querySelector('p').textContent = `Memuat halaman ${activePage}...`;
             }
-            img.style.display = 'none';
+            loader.style.display = 'flex';
+            loader.innerHTML = `
+                <div style="width:44px;height:44px;border:4px solid #e2e8f0;border-top-color:#065f46;border-radius:50%;animation:spin 0.9s linear infinite;"></div>
+                <p id="loaderText" style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:0.08em;">Memuat halaman ${activePage}...</p>
+            `;
+            frame.style.minHeight = '400px';
 
-            function tryLoad(idx) {
-                if (idx >= sources.length) {
-                    // Semua CDN gagal — tampilkan pesan error
-                    if (loader) loader.innerHTML = `<div style="text-align:center;padding:2rem;">
-                        <div style="font-size:2rem;margin-bottom:0.5rem">⚠️</div>
-                        <p style="font-weight:800;font-size:0.75rem;color:#ef4444;margin-bottom:0.25rem;">Gambar tidak dapat dimuat</p>
-                        <p style="font-size:0.7rem;color:#94a3b8;margin-bottom:1rem;">Periksa koneksi internet Anda</p>
-                        <button onclick="renderPage(${activePage})" style="background:#065f46;color:white;padding:8px 20px;border-radius:9999px;font-weight:800;font-size:11px;border:none;cursor:pointer;">Coba Lagi</button>
-                    </div>`;
+            async function tryLoad(idx) {
+                if (idx >= urls.length) {
+                    loader.innerHTML = `
+                        <div style="text-align:center;padding:2rem;">
+                            <div style="font-size:2.5rem;margin-bottom:0.75rem">📖</div>
+                            <p style="font-weight:800;font-size:0.8rem;color:#ef4444;margin-bottom:0.4rem;">Gambar tidak dapat dimuat</p>
+                            <p style="font-size:0.7rem;color:#94a3b8;margin-bottom:1.25rem;">Periksa koneksi internet Anda,<br>lalu coba lagi.</p>
+                            <button onclick="renderPage(${activePage})" style="background:#065f46;color:white;padding:10px 24px;border-radius:9999px;font-weight:800;font-size:11px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(6,95,70,0.3);">⟳ Coba Lagi</button>
+                        </div>`;
                     return;
                 }
-                const url = sources[idx](pStr);
-                // Gunakan no-referrer untuk bypass hotlink protection
-                img.referrerPolicy = 'no-referrer';
-                img.crossOrigin = 'anonymous';
-                img.src = url;
-                img.onload = () => {
-                    if (loader) loader.style.display = 'none';
-                    img.style.display = 'block';
-                    frame.style.opacity = '1';
-                    const inp = document.getElementById('jumpPageInput');
-                    if (inp) inp.value = activePage;
-                };
-                img.onerror = () => tryLoad(idx + 1);
+
+                const url = urls[idx];
+                const lt = document.getElementById('loaderText');
+                if (lt) lt.textContent = `Mencoba sumber ${idx + 1}/${urls.length}...`;
+
+                try {
+                    // Coba fetch sebagai blob dulu (bypass hotlink)
+                    const blobUrl = await fetchImageAsBlob(url);
+                    img.src = blobUrl;
+                    img.onload = () => {
+                        loader.style.display = 'none';
+                        img.style.display = 'block';
+                        frame.style.minHeight = '';
+                        const inp = document.getElementById('jumpPageInput');
+                        if (inp) inp.value = activePage;
+                    };
+                    img.onerror = () => tryLoad(idx + 1);
+                } catch (e) {
+                    // Jika fetch blob gagal (CORS server tidak allow), coba direct img src
+                    img.referrerPolicy = 'no-referrer';
+                    img.src = url;
+                    await new Promise(resolve => {
+                        img.onload = () => {
+                            loader.style.display = 'none';
+                            img.style.display = 'block';
+                            frame.style.minHeight = '';
+                            const inp = document.getElementById('jumpPageInput');
+                            if (inp) inp.value = activePage;
+                            resolve();
+                        };
+                        img.onerror = () => { tryLoad(idx + 1); resolve(); };
+                    });
+                }
             }
 
             tryLoad(0);
