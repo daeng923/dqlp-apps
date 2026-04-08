@@ -1,172 +1,396 @@
 <!doctype html>
 <html lang="id">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>Presensi Digital DQLP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { background: transparent; font-family: 'Segoe UI', sans-serif; }
-        .btn-emerald { background-color: #059669; transition: all 0.3s; }
-        .btn-emerald:hover { background-color: #047857; }
-        .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #059669; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Presensi Digital DQLP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background: transparent; font-family: 'Segoe UI', sans-serif; }
+    .btn-emerald { background-color: #059669; transition: all 0.3s; }
+    .btn-emerald:hover { background-color: #047857; }
+    .btn-emerald:disabled { background-color: #6ee7b7; cursor: not-allowed; }
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #059669; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
 <body class="p-2 md:p-4">
 
-    <div class="max-w-xl mx-auto space-y-6">
-        <div class="bg-white rounded-2xl p-6 border-l-8 border-[#059669] shadow-lg animate-fadeIn">
-            <h1 class="text-2xl font-bold text-slate-800">Presensi Digital DQLP</h1>
-            <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Universitas Muhammadiyah Malang</p>
-        </div>
+  <div class="max-w-xl mx-auto space-y-6">
 
-        <div id="pencarianBox" class="bg-white rounded-2xl p-6 shadow-lg animate-fadeIn">
-            <label class="block text-lg font-bold text-slate-700 mb-4">Cari Nama Lengkap:</label>
-            <input id="namaCari" type="text" class="w-full px-5 py-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 mb-4" placeholder="Ketik minimal 3 huruf...">
-            <button onclick="cari()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold shadow-lg">CARI DATA</button>
-            <div id="loadingSearch" class="hidden mt-6 text-center"><div class="loader mx-auto"></div></div>
-            <div id="listHasil" class="hidden mt-4 border rounded-2xl divide-y overflow-hidden bg-white shadow-inner"></div>
-        </div>
-
-        <div id="formSection" class="hidden bg-white rounded-2xl p-8 shadow-lg text-center animate-fadeIn">
-            <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-user-check text-3xl"></i></div>
-            <h2 class="text-xl font-bold text-slate-800 mb-6">Konfirmasi Kehadiran</h2>
-            
-            <div class="space-y-3 text-left mb-6 text-sm">
-                <div class="bg-slate-50 p-4 rounded-xl border"><p class="text-[10px] text-slate-400 font-bold uppercase">Nama</p><p id="txtNama" class="font-bold text-slate-700"></p></div>
-                <div class="bg-slate-50 p-4 rounded-xl border"><p class="text-[10px] text-slate-400 font-bold uppercase">NIP</p><p id="txtNip" class="font-bold text-slate-700"></p></div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <button onclick="setMode('HADIR')" id="btnModeHadir" class="py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500 text-white font-bold transition-all">HADIR</button>
-                <button onclick="setMode('IZIN')" id="btnModeIzin" class="py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all">IZIN</button>
-            </div>
-
-            <div id="izinBox" class="hidden mb-6 animate-fadeIn">
-                <textarea id="catatanIzin" class="w-full p-4 bg-amber-50 border border-amber-200 rounded-xl outline-none text-sm" placeholder="Tuliskan alasan izin (Sakit/Dinas/Lainnya)..."></textarea>
-            </div>
-
-            <div id="btnActionContainer">
-                <button onclick="openModal()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4 uppercase">Verifikasi Kode & Hadir</button>
-            </div>
-            <button onclick="location.reload()" class="text-slate-400 text-xs font-bold uppercase hover:text-emerald-600">Bukan Nama Saya</button>
-        </div>
-
-        <div id="successBox" class="hidden bg-white rounded-2xl p-12 text-center shadow-lg border-t-8 border-emerald-500 animate-fadeIn">
-            <i class="fa-solid fa-circle-check text-6xl text-emerald-500 mb-6"></i>
-            <h2 class="text-2xl font-bold text-slate-800">Terekam!</h2>
-            <p class="text-slate-500 mt-2">Data presensi Anda telah terekam dan menunggu proses verifikasi oleh Pengajar.</p>
-            <button onclick="location.reload()" class="mt-8 bg-slate-100 px-8 py-3 rounded-full font-bold text-sm">Tutup</button>
-        </div>
+    <!-- HEADER -->
+    <div class="bg-white rounded-2xl p-6 border-l-8 border-[#059669] shadow-lg animate-fadeIn">
+      <h1 class="text-2xl font-bold text-slate-800">Presensi Digital DQLP</h1>
+      <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Universitas Muhammadiyah Malang</p>
     </div>
 
-    <div id="notifModal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
-        <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center border-t-8 border-amber-500 animate-fadeIn">
-            <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-circle-exclamation text-4xl"></i></div>
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Informasi Sistem</h3>
-            <p id="notifMsg" class="text-slate-500 text-sm leading-relaxed"></p>
-            <button onclick="closeNotif()" class="mt-8 w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-xs">Tutup</button>
+    <!-- PENCARIAN -->
+    <div id="pencarianBox" class="bg-white rounded-2xl p-6 shadow-lg animate-fadeIn">
+      <label class="block text-lg font-bold text-slate-700 mb-4">Cari Nama Lengkap:</label>
+      <input id="namaCari" type="text"
+        class="w-full px-5 py-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 mb-4"
+        placeholder="Ketik minimal 3 huruf..."
+        onkeydown="if(event.key==='Enter') cari()">
+      <button id="btnCari" onclick="cari()"
+        class="w-full btn-emerald text-white py-4 rounded-2xl font-bold shadow-lg">
+        CARI DATA
+      </button>
+      <div id="loadingSearch" class="hidden mt-6 text-center">
+        <div class="loader mx-auto"></div>
+      </div>
+      <div id="listHasil" class="hidden mt-4 border rounded-2xl divide-y overflow-hidden bg-white shadow-inner"></div>
+    </div>
+
+    <!-- FORM KONFIRMASI -->
+    <div id="formSection" class="hidden bg-white rounded-2xl p-8 shadow-lg text-center animate-fadeIn">
+      <div class="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 bg-emerald-50 border-4 border-emerald-100 shadow-md">
+        <img id="fotoUser" src="" alt="Foto"
+          class="w-full h-full object-cover"
+          onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=User&background=059669&color=fff&size=100'">
+      </div>
+      <h2 class="text-xl font-bold text-slate-800 mb-6">Konfirmasi Kehadiran</h2>
+
+      <div class="space-y-3 text-left mb-6 text-sm">
+        <div class="bg-slate-50 p-4 rounded-xl border">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Nama</p>
+          <p id="txtNama" class="font-bold text-slate-700"></p>
         </div>
-    </div>
-
-    <div id="kodeModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden items-center justify-center p-6">
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-fadeIn text-center">
-            <h3 class="text-xl font-bold mb-6">Verifikasi Kode</h3>
-            <input id="inputKode" type="text" inputmode="numeric" class="w-full py-5 bg-slate-50 border-2 rounded-2xl text-center font-bold text-4xl mb-8 outline-none tracking-widest" placeholder="****">
-            <div class="grid grid-cols-2 gap-4"><button onclick="closeModal()" class="py-4 text-slate-400 font-bold uppercase text-xs">Batal</button><button onclick="prosesSimpanHadir()" class="py-4 btn-emerald text-white font-bold rounded-xl uppercase text-xs">Validasi</button></div>
+        <div class="bg-slate-50 p-4 rounded-xl border">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">NIP</p>
+          <p id="txtNip" class="font-bold text-slate-700"></p>
         </div>
+        <div class="bg-slate-50 p-4 rounded-xl border">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Skema</p>
+          <p id="txtSkema" class="font-bold text-slate-700"></p>
+        </div>
+      </div>
+
+      <!-- MODE HADIR / IZIN -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <button onclick="setMode('HADIR')" id="btnModeHadir"
+          class="py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500 text-white font-bold transition-all">
+          HADIR
+        </button>
+        <button onclick="setMode('IZIN')" id="btnModeIzin"
+          class="py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all">
+          IZIN
+        </button>
+      </div>
+
+      <!-- BOX ALASAN IZIN -->
+      <div id="izinBox" class="hidden mb-6 animate-fadeIn">
+        <textarea id="catatanIzin"
+          class="w-full p-4 bg-amber-50 border border-amber-200 rounded-xl outline-none text-sm"
+          placeholder="Tuliskan alasan izin (Sakit / Dinas / Lainnya)..."
+          rows="3"></textarea>
+      </div>
+
+      <!-- TOMBOL AKSI -->
+      <div id="btnActionContainer"></div>
+
+      <button onclick="location.reload()"
+        class="text-slate-400 text-xs font-bold uppercase hover:text-emerald-600 mt-2">
+        Bukan Nama Saya
+      </button>
     </div>
 
-    <div id="loadingOverlay" class="hidden fixed inset-0 bg-white/95 z-[200] flex flex-col items-center justify-center">
-        <div class="loader w-16 h-16 border-8 mb-6"></div>
-        <p class="text-[10px] font-bold text-emerald-800 tracking-widest uppercase animate-pulse">Menghubungkan ke Server...</p>
+    <!-- SUCCESS -->
+    <div id="successBox" class="hidden bg-white rounded-2xl p-12 text-center shadow-lg border-t-8 border-emerald-500 animate-fadeIn">
+      <i class="fa-solid fa-circle-check text-6xl text-emerald-500 mb-6"></i>
+      <h2 class="text-2xl font-bold text-slate-800">Terekam!</h2>
+      <p class="text-slate-500 mt-2">Data presensi Anda telah terekam dan menunggu verifikasi Pengajar.</p>
+      <button onclick="location.reload()"
+        class="mt-8 bg-slate-100 px-8 py-3 rounded-full font-bold text-sm">
+        Tutup
+      </button>
     </div>
+  </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyc2iLwxu9fPhMWjdtK9W01rcUfzum50aWetwWm92OBh7otKFQAR3HCIjJ-dlgIR6cK/exec";
-        let userAktif = { nip: '', nama: '' };
-        let currentStatus = 'HADIR';
+  <!-- MODAL NOTIFIKASI -->
+  <div id="notifModal"
+    class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+    <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center border-t-8 border-amber-500 animate-fadeIn">
+      <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fa-solid fa-circle-exclamation text-4xl"></i>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Informasi Sistem</h3>
+      <p id="notifMsg" class="text-slate-500 text-sm leading-relaxed"></p>
+      <button onclick="closeNotif()"
+        class="mt-8 w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-xs">
+        Tutup
+      </button>
+    </div>
+  </div>
 
-        function setMode(mode) {
-            currentStatus = mode;
-            const btnH = document.getElementById('btnModeHadir');
-            const btnI = document.getElementById('btnModeIzin');
-            const box = document.getElementById('izinBox');
-            const btnContainer = document.getElementById('btnActionContainer');
+  <!-- MODAL KODE VERIFIKASI -->
+  <div id="kodeModal"
+    class="fixed inset-0 bg-slate-900/90 z-50 hidden items-center justify-center p-6">
+    <div class="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-fadeIn text-center">
+      <h3 class="text-xl font-bold mb-2">Verifikasi Kode</h3>
+      <p class="text-slate-400 text-xs mb-6">Masukkan kode yang diberikan Pengajar</p>
+      <input id="inputKode" type="text" inputmode="numeric"
+        class="w-full py-5 bg-slate-50 border-2 rounded-2xl text-center font-bold text-4xl mb-8 outline-none tracking-widest"
+        placeholder="****"
+        maxlength="10"
+        onkeydown="if(event.key==='Enter') prosesSimpanHadir()">
+      <div class="grid grid-cols-2 gap-4">
+        <button onclick="closeModal()"
+          class="py-4 text-slate-400 font-bold uppercase text-xs border border-slate-200 rounded-xl">
+          Batal
+        </button>
+        <button id="btnValidasi" onclick="prosesSimpanHadir()"
+          class="py-4 btn-emerald text-white font-bold rounded-xl uppercase text-xs">
+          Validasi
+        </button>
+      </div>
+    </div>
+  </div>
 
-            if(mode === 'HADIR') {
-                btnH.className = 'py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500 text-white font-bold transition-all';
-                btnI.className = 'py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all';
-                box.classList.add('hidden');
-                btnContainer.innerHTML = `<button onclick="openModal()" class="w-full btn-emerald text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4 uppercase">Verifikasi Kode & Hadir</button>`;
-            } else {
-                btnI.className = 'py-3 rounded-xl border-2 border-amber-500 bg-amber-500 text-white font-bold transition-all';
-                btnH.className = 'py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all';
-                box.classList.remove('hidden');
-                btnContainer.innerHTML = `<button onclick="prosesSimpanIzin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4 uppercase">Kirim Laporan Izin</button>`;
-            }
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay"
+    class="hidden fixed inset-0 bg-white/95 z-[200] flex flex-col items-center justify-center">
+    <div class="loader w-16 h-16 border-8 mb-6"></div>
+    <p class="text-[10px] font-bold text-emerald-800 tracking-widest uppercase animate-pulse">
+      Menghubungkan ke Server...
+    </p>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbywHhR4PnfywbsPFmEP0wFGMy_8EtBGPPUqEAs7PydtnHxRy9vHeWXK5fsV1HhihYtL/exec";
+
+    // Deteksi mobile untuk skip anti-inspect
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+
+    let userAktif     = { nip: '', nama: '', skema: '', foto: '' };
+    let currentStatus = 'HADIR';
+
+    // Init tombol aksi
+    setMode('HADIR');
+
+    /* ========== FETCH WITH TIMEOUT + RETRY ========== */
+    async function fetchWithTimeout(url, ms = 15000, retries = 1) {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), ms);
+        try {
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(id);
+          return res;
+        } catch (err) {
+          clearTimeout(id);
+          const isLast = attempt === retries;
+          if (isLast) {
+            if (err.name === 'AbortError') throw new Error('Koneksi timeout. Periksa jaringan Anda.');
+            throw err;
+          }
+          // Tunggu 2 detik sebelum retry
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+    }
+
+    /* ========== MODE HADIR / IZIN ========== */
+    function setMode(mode) {
+      currentStatus = mode;
+      const btnH      = document.getElementById('btnModeHadir');
+      const btnI      = document.getElementById('btnModeIzin');
+      const box       = document.getElementById('izinBox');
+      const container = document.getElementById('btnActionContainer');
+
+      if (mode === 'HADIR') {
+        btnH.className = 'py-3 rounded-xl border-2 border-emerald-500 bg-emerald-500 text-white font-bold transition-all';
+        btnI.className = 'py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all';
+        box.classList.add('hidden');
+        container.innerHTML = `
+          <button onclick="openModal()"
+            class="w-full btn-emerald text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4 uppercase">
+            Verifikasi Kode &amp; Hadir
+          </button>`;
+      } else {
+        btnI.className = 'py-3 rounded-xl border-2 border-amber-500 bg-amber-500 text-white font-bold transition-all';
+        btnH.className = 'py-3 rounded-xl border-2 border-slate-200 text-slate-400 font-bold transition-all';
+        box.classList.remove('hidden');
+        container.innerHTML = `
+          <button onclick="prosesSimpanIzin()"
+            class="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4 uppercase">
+            Kirim Laporan Izin
+          </button>`;
+      }
+    }
+
+    /* ========== CARI NAMA ========== */
+    async function cari() {
+      const nama   = document.getElementById('namaCari').value.trim();
+      if (nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
+
+      const list   = document.getElementById('listHasil');
+      const loader = document.getElementById('loadingSearch');
+      const btn    = document.getElementById('btnCari');
+
+      list.innerHTML = '';
+      list.classList.add('hidden');
+      loader.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        const r = await fetchWithTimeout(
+          `${API_URL}?action=cari_nama&nama=${encodeURIComponent(nama)}`
+        );
+        const j = await r.json();
+
+        if (!j.hasil || j.hasil.length === 0) {
+          list.innerHTML = '<div class="p-6 text-center text-slate-400 italic">Nama tidak ditemukan.</div>';
+        } else {
+          j.hasil.forEach(item => {
+            const d = document.createElement('div');
+            d.className = 'p-5 text-base font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center';
+            d.innerHTML = `<span>${item.nama}</span><i class="fa-solid fa-angle-right text-emerald-200"></i>`;
+            d.onclick   = () => pilihPeserta(item);
+            list.appendChild(d);
+          });
+        }
+        list.classList.remove('hidden');
+      } catch (err) {
+        showNotif(err.message || 'Gagal memuat data. Periksa koneksi Anda.');
+      } finally {
+        loader.classList.add('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    function pilihPeserta(item) {
+      userAktif = item;
+      document.getElementById('pencarianBox').classList.add('hidden');
+      document.getElementById('formSection').classList.remove('hidden');
+      document.getElementById('txtNama').innerText  = item.nama;
+      document.getElementById('txtNip').innerText   = item.nip;
+      document.getElementById('txtSkema').innerText = item.skema || '-';
+
+      const foto     = item.foto ? item.foto.replace('http://', 'https://') : '';
+      const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=059669&color=fff&size=100`;
+      const imgEl    = document.getElementById('fotoUser');
+      imgEl.src      = foto || fallback;
+    }
+
+    /* ========== MODAL HELPERS ========== */
+    function showNotif(msg) {
+      document.getElementById('notifMsg').innerText = msg;
+      document.getElementById('notifModal').classList.replace('hidden', 'flex');
+    }
+    function closeNotif() {
+      document.getElementById('notifModal').classList.replace('flex', 'hidden');
+    }
+    function openModal() {
+      document.getElementById('inputKode').value = '';
+      document.getElementById('kodeModal').classList.replace('hidden', 'flex');
+      setTimeout(() => document.getElementById('inputKode').focus(), 100);
+    }
+    function closeModal() {
+      document.getElementById('kodeModal').classList.replace('flex', 'hidden');
+    }
+
+    /* ========== SIMPAN HADIR (GET) ========== */
+    async function prosesSimpanHadir() {
+      const kode = document.getElementById('inputKode').value.trim();
+      if (!kode) return;
+
+      const btnVal = document.getElementById('btnValidasi');
+      btnVal.disabled = true;
+      closeModal();
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+
+      try {
+        // Cek kode dulu
+        const v  = await fetchWithTimeout(
+          `${API_URL}?action=cek_kode&kode=${encodeURIComponent(kode)}`
+        );
+        const vr = await v.json();
+
+        if (vr.status !== 'VALID') {
+          document.getElementById('inputKode').value = '';
+          showNotif(vr.pesan || 'Kode tidak valid.');
+          return;
         }
 
-        async function cari() {
-            const nama = document.getElementById('namaCari').value.trim();
-            if(nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
-            const list = document.getElementById('listHasil');
-            const loader = document.getElementById('loadingSearch');
-            list.innerHTML = ''; list.classList.add('hidden'); loader.classList.remove('hidden');
-            try {
-                const r = await fetch(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(nama)}`);
-                const j = await r.json();
-                if(j.hasil.length === 0) { list.innerHTML = '<div class="p-6 text-center text-slate-400 italic">Nama tidak ditemukan.</div>'; }
-                else {
-                    j.hasil.forEach(item => {
-                        const d = document.createElement('div');
-                        d.className = 'p-5 text-base font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center';
-                        d.innerHTML = `<span>${item.nama}</span> <i class="fa-solid fa-angle-right text-emerald-200"></i>`;
-                        d.onclick = () => { userAktif = item; document.getElementById('pencarianBox').classList.add('hidden'); document.getElementById('formSection').classList.remove('hidden'); document.getElementById('txtNama').innerText = item.nama; document.getElementById('txtNip').innerText = item.nip; };
-                        list.appendChild(d);
-                    });
-                }
-                list.classList.remove('hidden');
-            } catch(e) { showNotif('Gagal memuat data.'); } finally { loader.classList.add('hidden'); }
+        // Simpan via GET
+        const params = new URLSearchParams({
+          action : 'simpan_hadir',
+          nip    : userAktif.nip,
+          nama   : userAktif.nama,
+          kode   : kode,
+          status : 'HADIR'
+        });
+
+        const s   = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
+        const res = await s.json();
+
+        if (res.status === 'SUCCESS') {
+          document.getElementById('formSection').classList.add('hidden');
+          document.getElementById('successBox').classList.remove('hidden');
+        } else {
+          document.getElementById('inputKode').value = '';
+          showNotif(res.pesan || 'Terjadi kesalahan.');
         }
 
-        function showNotif(msg) { document.getElementById('notifMsg').innerText = msg; document.getElementById('notifModal').classList.replace('hidden', 'flex'); }
-        function closeNotif() { document.getElementById('notifModal').classList.replace('flex', 'hidden'); }
-        function openModal() { document.getElementById('kodeModal').classList.replace('hidden', 'flex'); }
-        function closeModal() { document.getElementById('kodeModal').classList.replace('flex', 'hidden'); }
+      } catch (err) {
+        document.getElementById('inputKode').value = '';
+        showNotif(err.message || 'Kesalahan sinkronisasi data.');
+      } finally {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        btnVal.disabled = false;
+      }
+    }
 
-        async function prosesSimpanHadir() {
-            const kode = document.getElementById('inputKode').value.trim();
-            if(!kode) return;
-            closeModal();
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            try {
-                const v = await fetch(`${API_URL}?action=cek_kode&kode=${encodeURIComponent(kode)}`);
-                const vr = await v.json();
-                if(vr.status === 'VALID') {
-                    const s = await fetch(`${API_URL}?action=simpan_hadir&nip=${userAktif.nip}&nama=${encodeURIComponent(userAktif.nama)}&kode=${kode}&status=HADIR`);
-                    const res = await s.json();
-                    if(res.status === 'SUCCESS') { document.getElementById('formSection').classList.add('hidden'); document.getElementById('successBox').classList.remove('hidden'); }
-                    else { showNotif(res.pesan); }
-                } else { showNotif(vr.pesan); }
-            } catch(e) { showNotif('Kesalahan sinkronisasi data.'); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
+    /* ========== SIMPAN IZIN (GET) ========== */
+    async function prosesSimpanIzin() {
+      const catatan = document.getElementById('catatanIzin').value.trim();
+      if (!catatan) return showNotif('Mohon isi alasan izin Anda.');
+
+      const btnIzin = document.querySelector('#btnActionContainer button');
+      if (btnIzin) btnIzin.disabled = true;
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+
+      try {
+        const params = new URLSearchParams({
+          action  : 'simpan_hadir',
+          nip     : userAktif.nip,
+          nama    : userAktif.nama,
+          status  : 'IZIN',
+          catatan : catatan
+        });
+
+        const s   = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
+        const res = await s.json();
+
+        if (res.status === 'SUCCESS') {
+          document.getElementById('formSection').classList.add('hidden');
+          document.getElementById('successBox').classList.remove('hidden');
+        } else {
+          showNotif(res.pesan || 'Terjadi kesalahan.');
         }
 
-        async function prosesSimpanIzin() {
-            const catatan = document.getElementById('catatanIzin').value.trim();
-            if(!catatan) return showNotif('Mohon isi alasan izin Anda.');
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            try {
-                const s = await fetch(`${API_URL}?action=simpan_hadir&nip=${userAktif.nip}&nama=${encodeURIComponent(userAktif.nama)}&status=IZIN&catatan=${encodeURIComponent(catatan)}`);
-                const res = await s.json();
-                if(res.status === 'SUCCESS') { document.getElementById('formSection').classList.add('hidden'); document.getElementById('successBox').classList.remove('hidden'); }
-                else { showNotif(res.pesan); }
-            } catch(e) { showNotif('Kesalahan sinkronisasi data.'); } finally { document.getElementById('loadingOverlay').classList.add('hidden'); }
-        }
-    </script>
+      } catch (err) {
+        showNotif(err.message || 'Kesalahan sinkronisasi data.');
+      } finally {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        if (btnIzin) btnIzin.disabled = false;
+      }
+    }
+
+    /* ========== ANTI-INSPECT (skip on mobile) ========== */
+    if (!isMobile) {
+      document.onkeydown = e => {
+        if (
+          e.keyCode === 123 ||
+          (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) ||
+          (e.ctrlKey && e.keyCode === 85)
+        ) return false;
+      };
+    }
+  </script>
 </body>
 </html>
