@@ -144,10 +144,7 @@
               <span class="text-xs text-slate-400 font-bold flex-shrink-0">Sertifikat Ke</span>
               <span class="text-xs font-black text-slate-800">${data.sertifikat_ke}</span>
             </div>
-            <div class="px-5 py-3.5 flex justify-between items-center gap-4">
-              <span class="text-xs text-slate-400 font-bold flex-shrink-0">Total Kehadiran</span>
-              <span class="text-xs font-black text-emerald-600">${data.total_hadir} Pertemuan</span>
-            </div>
+
             <div class="px-5 py-3.5 flex justify-between items-start gap-4">
               <span class="text-xs text-slate-400 font-bold flex-shrink-0">Tanggal Terbit</span>
               <span class="text-xs font-black text-slate-800 text-right">${data.tanggal}</span>
@@ -356,6 +353,35 @@
   }
 
   init();
+
+  /* ========== PROTEKSI HALAMAN (skip on mobile) ========== */
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+
+  if (!isMobile) {
+    // Disable klik kanan
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Disable shortcut devtools & view source
+    document.addEventListener('keydown', e => {
+      if (
+        e.keyCode === 123 ||
+        (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) ||
+        (e.ctrlKey && e.keyCode === 85) ||
+        (e.ctrlKey && e.keyCode === 83) ||
+        (e.ctrlKey && e.keyCode === 80)
+      ) { e.preventDefault(); return false; }
+    });
+
+    // Deteksi devtools via resize
+    const threshold = 160;
+    setInterval(() => {
+      const devOpen =
+        window.outerWidth  - window.innerWidth  > threshold ||
+        window.outerHeight - window.innerHeight > threshold;
+      if (devOpen) document.body.innerHTML = '';
+    }, 1000);
+  }
 </script>
   <!-- MODAL PREVIEW PDF -->
   <div id="previewModal"
