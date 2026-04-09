@@ -121,7 +121,9 @@
   </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbxyNWY67lxEmqee9QfJr7LiPJrWWmAOYnpp0tiAtp3G1fMKrx-mzWAqxbaUu718pTbA/exec";
+  const API_URL       = "https://script.google.com/macros/s/AKfycbxyNWY67lxEmqee9QfJr7LiPJrWWmAOYnpp0tiAtp3G1fMKrx-mzWAqxbaUu718pTbA/exec";
+  // Generate sertifikat via Project 4 (Dashboard Admin) yang punya izin UrlFetchApp
+  const API_URL_ADMIN = "https://script.google.com/macros/s/AKfycbxplpLBevNDxvPAchwesXszGivyV8cf5dy9e8EkhHLAyNB4BsscmS0TxSCA5tXTJKgOLw/exec";
 
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
     || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
@@ -577,7 +579,8 @@
         kode    : kode,
         periode : periode
       });
-      const r = await fetchWithTimeout(`${API_URL}?${params}`, 30000, 0);
+      // Gunakan Project 4 untuk generate sertifikat (punya izin UrlFetchApp untuk QR)
+      const r = await fetchWithTimeout(`${API_URL_ADMIN}?${params}`, 30000, 0);
       const j = await r.json();
 
       document.getElementById("loadingOverlay").classList.add("hidden");
@@ -620,7 +623,7 @@
     });
 
     // Deteksi devtools terbuka via resize (heuristik sederhana)
-    const threshold = 160;
+    const threshold = 160; 
     setInterval(() => {
       const devOpen =
         window.outerWidth  - window.innerWidth  > threshold ||
