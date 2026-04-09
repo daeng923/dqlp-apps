@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Portal Peserta DQLP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: transparent; }
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #059669; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .acc-chevron { transition: transform 0.3s; }
+    .acc-chevron.open { transform: rotate(180deg); }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <div class="max-w-lg mx-auto space-y-5">
+
+    <!-- HEADER -->
+    <div class="bg-white rounded-2xl p-6 border-l-8 border-[#059669] shadow-lg animate-fadeIn">
+      <h1 class="text-2xl font-bold text-slate-800">Portal Peserta DQLP</h1>
+      <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Universitas Muhammadiyah Malang</p>
+    </div>
+
+    <!-- FORM PENCARIAN -->
+    <div id="formCari" class="bg-white rounded-2xl p-6 shadow-lg animate-fadeIn">
+      <div class="space-y-4">
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Program Kegiatan</label>
+          <select id="kegiatan"
+            class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-emerald-500 transition-all">
+            <option value="">Memuat program...</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Cari Nama Lengkap</label>
+          <input type="text" id="nama"
+            placeholder="Ketik minimal 3 huruf..."
+            class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+            onkeydown="if(event.key==='Enter') cari()">
+        </div>
+        <button id="btnCari" onclick="cari()"
+          class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] uppercase tracking-wider">
+          Cek Rekapitulasi
+        </button>
+      </div>
+
+      <!-- Hasil pencarian -->
+      <div id="listSearch" class="hidden mt-4 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-inner divide-y divide-slate-50"></div>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loadingDetail" class="hidden bg-white rounded-2xl p-12 text-center shadow-lg">
+      <div class="loader mx-auto mb-4"></div>
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Memuat data...</p>
+    </div>
+
+    <!-- HASIL DETAIL -->
+    <div id="mainResult" class="space-y-4"></div>
+
+  </div>
+
+  <!-- MODAL VERIFIKASI NIP -->
+  <div id="nipModal"
+    class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+    <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center border-t-8 border-emerald-500 animate-fadeIn">
+      <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-id-card text-2xl"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800 mb-1">Konfirmasi Identitas</h3>
+      <p class="text-slate-400 text-xs mb-5 leading-relaxed">
+        Masukkan NIP Anda untuk mengkonfirmasi penerbitan sertifikat
+        <strong id="nipModalPeriode" class="text-slate-600"></strong>
+      </p>
+      <input id="nipInput" type="text" inputmode="numeric"
+        placeholder="Masukkan NIP Anda..."
+        class="w-full px-5 py-4 bg-slate-50 border-2 rounded-2xl text-center font-bold text-lg mb-6 outline-none tracking-widest focus:border-emerald-500 transition-all"
+        onkeydown="if(event.key==='Enter') prosesVerifikasiNip()">
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="tutupNipModal()"
+          class="py-3 text-slate-400 font-bold uppercase text-xs border border-slate-200 rounded-xl">
+          Batal
+        </button>
+        <button id="btnVerifikasiNip" onclick="prosesVerifikasiNip()"
+          class="py-3 bg-emerald-600 text-white font-bold rounded-xl uppercase text-xs">
+          Konfirmasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING OVERLAY (generate sertifikat) -->
+  <div id="loadingOverlay"
+    class="hidden fixed inset-0 bg-white/95 z-[200] flex flex-col items-center justify-center">
+    <div class="loader w-16 h-16 border-8 mb-4"></div>
+    <p class="text-[10px] font-bold text-emerald-800 tracking-widest uppercase animate-pulse">Memproses Sertifikat...</p>
+    <p class="text-[10px] text-slate-400 mt-1">Mohon tunggu, jangan tutup halaman ini</p>
+  </div>
+
+  <!-- MODAL NOTIFIKASI -->
+  <div id="notifModal"
+    class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+    <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center border-t-8 border-amber-500 animate-fadeIn">
+      <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fa-solid fa-circle-exclamation text-3xl"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800 mb-2">Informasi</h3>
+      <p id="notifMsg" class="text-slate-500 text-sm leading-relaxed"></p>
+      <button onclick="closeNotif()"
+        class="mt-6 w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-xs">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbxyNWY67lxEmqee9QfJr7LiPJrWWmAOYnpp0tiAtp3G1fMKrx-mzWAqxbaUu718pTbA/exec";
+
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+
+  let kodeAktif = "";
+
+  /* ========== FETCH WITH TIMEOUT + RETRY ========== */
+  async function fetchWithTimeout(url, ms = 20000, retries = 1) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), ms);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(id);
+        return res;
+      } catch (err) {
+        clearTimeout(id);
+        if (attempt === retries) {
+          if (err.name === 'AbortError') throw new Error('Koneksi timeout. Periksa jaringan Anda.');
+          throw err;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+  }
+
+  /* ========== NOTIF ========== */
+  function showNotif(msg) {
+    document.getElementById('notifMsg').innerText = msg;
+    document.getElementById('notifModal').classList.replace('hidden', 'flex');
+  }
+  function closeNotif() {
+    document.getElementById('notifModal').classList.replace('flex', 'hidden');
+  }
+
+  /* ========== LOAD KEGIATAN ========== */
+  async function loadKegiatan() {
+    try {
+      const r = await fetchWithTimeout(`${API_URL}?action=list_kegiatan`);
+      const j = await r.json();
+      const s = document.getElementById("kegiatan");
+      s.innerHTML = '<option value="">Pilih Program</option>';
+      (j.kegiatan || []).forEach(k => {
+        s.innerHTML += `<option value="${k}">${k}</option>`;
+      });
+    } catch(err) {
+      document.getElementById("kegiatan").innerHTML = '<option value="">Gagal memuat program</option>';
+    }
+  }
+  loadKegiatan();
+
+  /* ========== ACCORDION ========== */
+  function toggleAcc(id) {
+    const el      = document.getElementById(id);
+    const chevron = document.querySelector(`[data-icon="${id}"]`);
+    el.classList.toggle('hidden');
+    if (chevron) chevron.classList.toggle('open');
+  }
+
+  /* ========== CARI NAMA ========== */
+  async function cari() {
+    const k    = document.getElementById("kegiatan").value;
+    const nama = document.getElementById("nama").value.trim();
+    const list = document.getElementById("listSearch");
+
+    if (!k)          return showNotif('Pilih program kegiatan terlebih dahulu.');
+    if (nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
+
+    const btn = document.getElementById("btnCari");
+    btn.disabled = true;
+    list.classList.remove('hidden');
+    list.innerHTML = `<div class="p-5 text-center text-xs font-bold text-slate-400 uppercase animate-pulse">
+      <div class="loader mx-auto mb-2" style="width:24px;height:24px;border-width:3px"></div>
+      Mencari data...
+    </div>`;
+
+    try {
+      const params = new URLSearchParams({ action: 'cari_nama', kegiatan: k, nama });
+      const r = await fetchWithTimeout(`${API_URL}?${params}`);
+      const j = await r.json();
+
+      list.innerHTML = "";
+      if (!j.hasil || j.hasil.length === 0) {
+        list.innerHTML = '<div class="p-5 text-center text-rose-500 font-bold text-sm">Nama tidak ditemukan.</div>';
+      } else {
+        j.hasil.forEach(h => {
+          const d = document.createElement("div");
+          d.className = "p-4 hover:bg-emerald-50 cursor-pointer text-sm font-bold text-slate-600 transition-colors flex justify-between items-center";
+          d.innerHTML = `<span>${h.nama}</span><i class="fa-solid fa-angle-right text-emerald-200"></i>`;
+          d.onclick = () => {
+            list.classList.add('hidden');
+            loadDetail(h.kode);
+          };
+          list.appendChild(d);
+        });
+      }
+    } catch(err) {
+      list.innerHTML = `<div class="p-5 text-center text-rose-500 font-bold text-sm">${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  /* ========== LOAD DETAIL ========== */
+  async function loadDetail(kode) {
+    const k       = document.getElementById("kegiatan").value;
+    const resArea = document.getElementById("mainResult");
+    const loading = document.getElementById("loadingDetail");
+
+    kodeAktif = kode;
+    resArea.innerHTML = "";
+    loading.classList.remove("hidden");
+
+    // Sembunyikan form pencarian saat hasil muncul
+    document.getElementById("formCari").classList.add("hidden");
+
+    try {
+      const params = new URLSearchParams({ action: 'detail_lengkap', kegiatan: k, kode });
+      const r = await fetchWithTimeout(`${API_URL}?${params}`, 20000);
+      const j = await r.json();
+
+      loading.classList.add("hidden");
+
+      if (j.status === "not_found") {
+        resArea.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center shadow-lg">
+          <i class="fa-solid fa-circle-xmark text-4xl text-rose-400 mb-3"></i>
+          <p class="font-bold text-slate-600">Data peserta tidak ditemukan.</p>
+        </div>`;
+        return;
+      }
+
+      const p    = j.profil;
+      const hak  = Math.floor(p.total / 10);
+      const sisa = 10 - (p.total % 10);
+      const pct  = ((p.total % 10) / 10) * 100;
+
+      const logSert = {};
+      (j.riwayatSertifikat || []).forEach(s => logSert[s.periode] = s);
+
+      // Render kartu profil
+      resArea.innerHTML = `
+
+        <!-- TOMBOL CARI BARU -->
+        <div class="flex justify-end animate-fadeIn">
+          <button onclick="resetCari()"
+            class="flex items-center gap-2 bg-white border border-slate-200 hover:border-emerald-400 text-slate-500 hover:text-emerald-600 px-4 py-2 rounded-full text-xs font-bold shadow-sm transition-all">
+            <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+            Cari Nama Lain
+          </button>
+        </div>
+
+        <!-- KARTU PROFIL -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fadeIn">
+          <div class="bg-emerald-600 px-6 pt-8 pb-14 text-center relative">
+            <div class="w-24 h-24 rounded-full overflow-hidden mx-auto border-4 border-white/30 shadow-xl mb-3 bg-white">
+              <img src="${p.foto || ''}"
+                onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(p.nama)}&background=059669&color=fff&size=100'"
+                class="w-full h-full object-cover">
+            </div>
+            <h2 class="text-white font-bold text-lg leading-tight">${p.nama}</h2>
+            <p class="text-emerald-100 text-xs font-bold mt-1 uppercase tracking-wider">${p.skema_asli}</p>
+          </div>
+
+          <!-- Progress kehadiran -->
+          <div class="-mt-8 mx-4 mb-4">
+            <div class="bg-white rounded-2xl p-5 shadow-xl border border-slate-100">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="bg-slate-800 w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-black flex-shrink-0">
+                  ${hak}
+                </div>
+                <div>
+                  <p class="text-xs font-black text-slate-800 uppercase tracking-tight">Sertifikat Layak Terbit</p>
+                  <p class="text-xs text-slate-400 font-bold mt-0.5">Total Kehadiran: <span class="text-emerald-600 font-black">${p.total}</span> Pertemuan</p>
+                </div>
+              </div>
+              <div class="bg-slate-100 rounded-full h-2.5 w-full overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width:${pct}%"></div>
+              </div>
+              <div class="flex justify-between mt-2">
+                <p class="text-[10px] text-slate-400 font-bold">
+                  ${sisa === 10 ? '✓ Ambang berikutnya tercapai' : `Butuh ${sisa} kehadiran lagi`}
+                </p>
+                <p class="text-[10px] text-emerald-600 font-black">${pct.toFixed(0)}%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMINISTRASI SERTIFIKAT -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fadeIn">
+          <button onclick="toggleAcc('acc-sertifikat')"
+            class="w-full flex justify-between items-center px-6 py-5">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-certificate text-emerald-500"></i>
+              <span class="text-sm font-black text-slate-800 uppercase tracking-wider">Administrasi Sertifikat</span>
+              ${hak > (j.riwayatSertifikat || []).length
+                ? `<span class="bg-amber-100 text-amber-700 text-[9px] px-2 py-0.5 rounded-full font-black animate-pulse uppercase">Antrean</span>`
+                : ''}
+            </div>
+            <i class="fa-solid fa-chevron-down acc-chevron text-slate-400" data-icon="acc-sertifikat"></i>
+          </button>
+          <div id="acc-sertifikat" class="hidden px-4 pb-4 space-y-3">
+
+            ${(() => {
+              // Ambil label periode secara urut dari GAS (fleksibel: Periode 1/2/3, Batch, Semester, dst)
+              const labelPeriode = p.label_periode || Object.keys(p.rincian_periode);
+
+              // Sertifikat ke-N = label urutan ke-N dari header Sheet1
+              // Jumlah hak = Math.floor(total / 10) — akumulasi lintas periode
+              const sertifikatLayak = labelPeriode.slice(0, hak);
+
+              if (sertifikatLayak.length === 0) {
+                return `<div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100">
+                  <i class="fa-solid fa-hourglass-half text-3xl text-slate-300 mb-2"></i>
+                  <p class="text-slate-400 text-sm font-bold">Belum ada sertifikat yang layak terbit.</p>
+                  <p class="text-slate-300 text-xs mt-1">Butuh akumulasi minimal 10 kehadiran.</p>
+                </div>`;
+              }
+
+              return sertifikatLayak.map((labelSert, idx) => {
+                const terbit    = logSert[labelSert];
+                const noSert    = idx + 1;
+                const kehadiran = p.rincian_periode[labelSert] || 0;
+
+                return `
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                  <div class="flex justify-between items-center mb-1">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 bg-slate-800 text-white text-[10px] font-black rounded-lg flex items-center justify-center flex-shrink-0">${noSert}</span>
+                      <span class="text-sm font-black text-slate-700">${labelSert}</span>
+                    </div>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${
+                      terbit
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                        : 'bg-amber-50 text-amber-600 border border-amber-100'
+                    } uppercase">${terbit ? 'Terarsip' : 'Belum Terbit'}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 font-bold mb-3 pl-8">
+                    Kehadiran periode ini: ${kehadiran}x
+                  </p>
+                  ${terbit
+                    ? `<button onclick="kirimWA('${terbit.link}','${labelSert}')"
+                        class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 uppercase tracking-wider transition-all">
+                        <i class="fa-brands fa-whatsapp text-green-400"></i> Kirim ke WhatsApp
+                      </button>`
+                    : `<button id="btn-${labelSert}" onclick="generate('${labelSert}','${p.kode}')"
+                        class="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                        Terbitkan Sekarang
+                      </button>`
+                  }
+                </div>`;
+              }).join('');
+            })()}
+
+            <!-- Info sertifikat berikutnya -->
+            ${hak < (p.label_periode || Object.keys(p.rincian_periode)).length ? (() => {
+              const labelBerikutnya = (p.label_periode || Object.keys(p.rincian_periode))[hak];
+              const sisaKehadiran   = 10 - (p.total % 10);
+              return `
+              <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
+                <i class="fa-solid fa-arrow-trend-up text-blue-400 mb-1"></i>
+                <p class="text-xs font-black text-blue-700">Menuju Sertifikat: ${labelBerikutnya}</p>
+                <p class="text-[10px] text-blue-500 mt-0.5">Butuh <strong>${sisaKehadiran}</strong> kehadiran lagi</p>
+              </div>`;
+            })() : ''}
+
+          </div>
+        </div>
+
+        <!-- AKUMULASI PER PERIODE -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fadeIn">
+          <button onclick="toggleAcc('acc-periode')"
+            class="w-full flex justify-between items-center px-6 py-5">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-chart-bar text-emerald-500"></i>
+              <span class="text-sm font-black text-slate-800 uppercase tracking-wider">Akumulasi per Periode</span>
+            </div>
+            <i class="fa-solid fa-chevron-down acc-chevron text-slate-400" data-icon="acc-periode"></i>
+          </button>
+          <div id="acc-periode" class="hidden px-4 pb-4">
+            <div class="grid grid-cols-2 gap-2">
+              ${Object.entries(p.rincian_periode).map(([key, val]) => `
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center">
+                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-1">${key}</p>
+                  <p class="text-lg font-black text-slate-700">${val}</p>
+                  <p class="text-[10px] text-slate-400">Kehadiran</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- LOG PRESENSI DIGITAL -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden animate-fadeIn">
+          <button onclick="toggleAcc('acc-harian')"
+            class="w-full flex justify-between items-center px-6 py-5">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-emerald-500"></i>
+              <span class="text-sm font-black text-slate-800 uppercase tracking-wider">Log Presensi Digital</span>
+            </div>
+            <i class="fa-solid fa-chevron-down acc-chevron text-slate-400" data-icon="acc-harian"></i>
+          </button>
+          <div id="acc-harian" class="hidden pb-4 px-4">
+            <div class="rounded-2xl border border-slate-100 overflow-hidden max-h-72 overflow-y-auto custom-scroll bg-white">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 text-slate-400 font-black sticky top-0 uppercase tracking-wider">
+                  <tr>
+                    <th class="px-4 py-3">Waktu</th>
+                    <th class="px-4 py-3">Sesi</th>
+                    <th class="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                  ${j.riwayatHadir.length > 0
+                    ? j.riwayatHadir.map(r => {
+                        const statUp = r.status.toUpperCase();
+                        let badgeClass = 'text-slate-400';
+                        let label = r.status;
+                        if (statUp === 'VALID')            { badgeClass = 'text-emerald-600 font-black'; label = 'Hadir'; }
+                        if (statUp === 'HADIR_KEBIJAKAN')  { badgeClass = 'text-blue-600 font-black';    label = 'Hadir*'; }
+                        if (statUp === 'TIDAK HADIR')      { badgeClass = 'text-rose-400 font-black';    label = 'Tidak Hadir'; }
+                        if (statUp === 'IZIN')             { badgeClass = 'text-amber-500 font-black';   label = 'Izin'; }
+                        return `<tr class="hover:bg-slate-50">
+                          <td class="px-4 py-3 text-slate-400 font-bold text-[11px]">${r.tanggal}</td>
+                          <td class="px-4 py-3 text-slate-700 font-bold text-[11px]">${r.periode}</td>
+                          <td class="px-4 py-3 ${badgeClass} text-[11px] italic">
+                            ${label}
+                            ${statUp === 'HADIR_KEBIJAKAN' ? '<i class="fa-solid fa-circle-info text-blue-400 ml-1" title="' + (r.catatan || 'Kebijakan Pengajar') + '"></i>' : ''}
+                          </td>
+                        </tr>`;
+                      }).join('')
+                    : `<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400 font-bold uppercase text-xs">
+                        Data digital belum tersedia
+                      </td></tr>`
+                  }
+                </tbody>
+              </table>
+            </div>
+            ${j.riwayatHadir.some(r => r.status.toUpperCase() === 'HADIR_KEBIJAKAN')
+              ? `<p class="text-[10px] text-blue-500 font-bold mt-2 px-1">
+                  <i class="fa-solid fa-circle-info mr-1"></i>
+                  Hadir* = Kehadiran atas kebijakan pengajar (ekuivalensi/tugas pengganti)
+                </p>`
+              : ''}
+          </div>
+        </div>
+
+        <!-- CATATAN SISTEM -->
+        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 animate-fadeIn">
+          <p class="text-[10px] text-slate-500 leading-relaxed font-bold italic">
+            <strong class="text-slate-700">Catatan Sistem:</strong>
+            Sinkronisasi data antara administrasi manual dan sistem digital dilakukan secara berkala.
+            Hubungi administrator jika terdapat diskrepansi data.
+          </p>
+        </div>
+      `;
+
+    } catch(err) {
+      loading.classList.add("hidden");
+      // Tampilkan kembali form jika error
+      document.getElementById("formCari").classList.remove("hidden");
+      resArea.innerHTML = `<div class="bg-white rounded-2xl p-8 text-center shadow-lg">
+        <i class="fa-solid fa-wifi text-4xl text-rose-400 mb-3"></i>
+        <p class="font-bold text-slate-600 text-sm">${err.message || 'Gagal memuat data.'}</p>
+        <button onclick="loadDetail('${kode}')"
+          class="mt-4 bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase">
+          Coba Lagi
+        </button>
+      </div>`;
+    }
+  }
+
+  /* ========== RESET PENCARIAN ========== */
+  function resetCari() {
+    // Tampilkan kembali form pencarian
+    document.getElementById("formCari").classList.remove("hidden");
+    // Bersihkan hasil
+    document.getElementById("mainResult").innerHTML = "";
+    document.getElementById("listSearch").classList.add("hidden");
+    document.getElementById("listSearch").innerHTML = "";
+    // Fokus ke input nama
+    document.getElementById("nama").value = "";
+    document.getElementById("nama").focus();
+    kodeAktif = "";
+  }
+
+  /* ========== GENERATE SERTIFIKAT ========== */
+  let _genPeriode = '', _genKode = '';
+
+  // Step 1: buka modal konfirmasi NIP dulu
+  function generate(periode, kode) {
+    _genPeriode = periode;
+    _genKode    = kode;
+    document.getElementById('nipInput').value        = '';
+    document.getElementById('nipModalPeriode').innerText = ' — ' + periode;
+    document.getElementById('nipModal').classList.replace('hidden', 'flex');
+    setTimeout(() => document.getElementById('nipInput').focus(), 100);
+  }
+
+  function tutupNipModal() {
+    document.getElementById('nipModal').classList.replace('flex', 'hidden');
+  }
+
+  // Step 2: verifikasi NIP ke GAS
+  async function prosesVerifikasiNip() {
+    const nipInput = document.getElementById('nipInput').value.trim();
+    if (!nipInput) return showNotif('Masukkan NIP Anda terlebih dahulu.');
+
+    const btnVer = document.getElementById('btnVerifikasiNip');
+    btnVer.disabled  = true;
+    btnVer.innerText = 'Memverifikasi...';
+
+    try {
+      const k      = document.getElementById("kegiatan").value;
+      const params = new URLSearchParams({
+        action   : 'verifikasi_nip',
+        kegiatan : k,
+        kode     : _genKode,
+        nip_input: nipInput
+      });
+      const r = await fetchWithTimeout(`${API_URL}?${params}`);
+      const j = await r.json();
+
+      if (j.status !== 'ok') {
+        showNotif(j.message || 'Verifikasi gagal.');
+        return;
+      }
+
+      // NIP valid — lanjut generate
+      tutupNipModal();
+      await prosesGenerate(_genPeriode, _genKode);
+
+    } catch(err) {
+      showNotif(err.message || 'Gagal verifikasi. Coba lagi.');
+    } finally {
+      btnVer.disabled  = false;
+      btnVer.innerText = 'Konfirmasi';
+    }
+  }
+
+  // Step 3: proses generate sertifikat
+  async function prosesGenerate(periode, kode) {
+    const btn = document.getElementById(`btn-${periode}`);
+    const k   = document.getElementById("kegiatan").value;
+
+    if (btn) { btn.disabled = true; btn.innerText = "Memproses..."; }
+    document.getElementById("loadingOverlay").classList.remove("hidden");
+
+    try {
+      const params = new URLSearchParams({
+        action  : 'generate_sertifikat',
+        kegiatan: k,
+        kode    : kode,
+        periode : periode
+      });
+      const r = await fetchWithTimeout(`${API_URL}?${params}`, 30000, 0);
+      const j = await r.json();
+
+      document.getElementById("loadingOverlay").classList.add("hidden");
+
+      if (j.status === "ok") {
+        kirimWA(j.link, periode);
+        loadDetail(kode);
+      } else {
+        showNotif(j.message || 'Gagal menerbitkan sertifikat.');
+        if (btn) { btn.disabled = false; btn.innerText = "Terbitkan Sekarang"; }
+      }
+    } catch(err) {
+      document.getElementById("loadingOverlay").classList.add("hidden");
+      showNotif(err.message || 'Gangguan jaringan. Coba lagi.');
+      if (btn) { btn.disabled = false; btn.innerText = "Terbitkan Sekarang"; }
+    }
+  }
+
+  /* ========== KIRIM WA ========== */
+  function kirimWA(link, periode) {
+    const nama  = document.querySelector('#mainResult h2')?.innerText || '';
+    const pesan = `Halo ${nama},\nBerikut dokumen Sertifikat DQLP Anda untuk *${periode}*.\n\nLink Akses Digital:\n${link}\n\n_Portal Peserta DQLP — Universitas Muhammadiyah Malang_`;
+    window.open("https://wa.me/?text=" + encodeURIComponent(pesan), "_blank");
+  }
+
+  /* ========== PROTEKSI HALAMAN (skip on mobile) ========== */
+  if (!isMobile) {
+    // Disable klik kanan
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Disable shortcut devtools & view source
+    document.addEventListener('keydown', e => {
+      if (
+        e.keyCode === 123 ||                                          // F12
+        (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || // Ctrl+Shift+I/J/C
+        (e.ctrlKey && e.keyCode === 85) ||                           // Ctrl+U
+        (e.ctrlKey && e.keyCode === 83) ||                           // Ctrl+S
+        (e.ctrlKey && e.keyCode === 80)                              // Ctrl+P
+      ) { e.preventDefault(); return false; }
+    });
+
+    // Deteksi devtools terbuka via resize (heuristik sederhana)
+    const threshold = 160;
+    setInterval(() => {
+      const devOpen =
+        window.outerWidth  - window.innerWidth  > threshold ||
+        window.outerHeight - window.innerHeight > threshold;
+      if (devOpen) document.body.innerHTML = '';
+    }, 1000);
+  }
+</script>
+</body>
+</html>
