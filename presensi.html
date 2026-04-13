@@ -397,14 +397,8 @@
         ) { e.preventDefault(); return false; }
       });
 
-      // Deteksi devtools via resize
-      const threshold = 160;
-      setInterval(() => {
-        const devOpen =
-          window.outerWidth  - window.innerWidth  > threshold ||
-          window.outerHeight - window.innerHeight > threshold;
-        if (devOpen) document.body.innerHTML = '';
-      }, 1000);
+      // Deteksi devtools via resize dinonaktifkan
+      // karena false positive saat halaman di-embed via iframe
     }
   </script>
 </body>
