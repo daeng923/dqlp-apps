@@ -381,15 +381,30 @@
       }
     }
 
-    /* ========== ANTI-INSPECT (skip on mobile) ========== */
+    /* ========== PROTEKSI HALAMAN (skip on mobile) ========== */
     if (!isMobile) {
-      document.onkeydown = e => {
+      // Disable klik kanan
+      document.addEventListener('contextmenu', e => e.preventDefault());
+
+      // Disable shortcut devtools & view source
+      document.addEventListener('keydown', e => {
         if (
           e.keyCode === 123 ||
           (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) ||
-          (e.ctrlKey && e.keyCode === 85)
-        ) return false;
-      };
+          (e.ctrlKey && e.keyCode === 85) ||
+          (e.ctrlKey && e.keyCode === 83) ||
+          (e.ctrlKey && e.keyCode === 80)
+        ) { e.preventDefault(); return false; }
+      });
+
+      // Deteksi devtools via resize
+      const threshold = 160;
+      setInterval(() => {
+        const devOpen =
+          window.outerWidth  - window.innerWidth  > threshold ||
+          window.outerHeight - window.innerHeight > threshold;
+        if (devOpen) document.body.innerHTML = '';
+      }, 1000);
     }
   </script>
 </body>
