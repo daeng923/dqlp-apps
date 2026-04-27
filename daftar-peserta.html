@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rekap Jadwal DQLP – Periode 4</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; }
+
+    @keyframes fadeUp  { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin    { to{transform:rotate(360deg)} }
+    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
+
+    .anim-up { animation: fadeUp .35s ease-out both; }
+
+    /* Skeleton loader */
+    .skeleton {
+      background: #e2e8f0;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .skeleton::after {
+      content:'';
+      position:absolute; inset:0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.6) 50%, transparent 100%);
+      animation: shimmer 1.4s infinite;
+    }
+
+    /* Loader spinner */
+    .spinner {
+      width:40px; height:40px;
+      border:4px solid #e2e8f0;
+      border-top-color:#059669;
+      border-radius:50%;
+      animation: spin .8s linear infinite;
+    }
+
+    /* Search highlight */
+    mark { background:#d1fae5; color:#065f46; border-radius:3px; padding:0 2px; }
+
+    /* Tabel */
+    #tabel-body tr { transition: background .12s; }
+    #tabel-body tr:hover { background:#f0fdf4; }
+
+    /* Badge skema */
+    .badge-skema {
+      display:inline-block;
+      padding:3px 10px;
+      border-radius:99px;
+      font-size:.7rem;
+      font-weight:700;
+      background:#dcfce7;
+      color:#166534;
+    }
+    .badge-tasmi   { background:#ede9fe; color:#5b21b6; }
+    .badge-studi   { background:#dbeafe; color:#1e40af; }
+    .badge-pimpinan{ background:#e0f2fe; color:#0c4a6e; }
+    .badge-belum   { background:#fee2e2; color:#991b1b; }
+
+    /* Scrollbar */
+    .custom-scroll::-webkit-scrollbar { height:5px; width:5px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
+
+    /* Fade tabel saat ganti halaman */
+    #tabel-body { transition: opacity .15s ease; }
+    #tabel-body.fading { opacity: 0; }
+
+    /* Pagination */
+    .pg-btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:36px; height:36px; border-radius:10px;
+      font-size:.8rem; font-weight:700;
+      border:1.5px solid #e2e8f0;
+      background:#fff; color:#475569;
+      cursor:pointer; transition:all .15s;
+    }
+    .pg-btn:hover:not(:disabled) { border-color:#059669; color:#059669; background:#f0fdf4; }
+    .pg-btn.aktif { background:#059669; color:#fff; border-color:#059669; }
+    .pg-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+    /* Print mode */
+    @media print {
+      body { background:#fff !important; }
+      .no-print { display:none !important; }
+      .print-only { display:block !important; }
+      #wrap { max-width:100% !important; padding:0 !important; }
+      #card-tabel { box-shadow:none !important; border-radius:0 !important; }
+      #tabel-body tr:hover { background:transparent !important; }
+      thead { display:table-header-group; }
+    }
+    .print-only { display:none; }
+
+    /* Sticky header tabel */
+    thead th { position:sticky; top:0; z-index:10; }
+  </style>
+</head>
+<body>
+
+<div id="wrap" class="max-w-5xl mx-auto px-4 py-6 space-y-5">
+
+  <!-- ===== HEADER ===== -->
+  <div class="bg-white rounded-2xl overflow-hidden shadow-sm anim-up no-print">
+    <div class="bg-emerald-600 px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <p class="text-emerald-200 text-[10px] font-black uppercase tracking-[.16em] mb-1">Universitas Muhammadiyah Malang</p>
+        <h1 class="text-white text-xl font-extrabold">Rekap Jadwal Peserta</h1>
+        <p class="text-emerald-100 text-xs font-semibold mt-0.5">DQLP Periode 4</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="statBadge" class="hidden bg-white/15 rounded-xl px-4 py-2 text-center">
+          <p class="text-white text-lg font-black" id="statTotal">–</p>
+          <p class="text-emerald-100 text-[10px] font-bold uppercase tracking-wide">Peserta</p>
+        </div>
+        <button onclick="bukaPreviewPDF()"
+          class="flex items-center gap-2 bg-white text-emerald-700 font-bold text-sm px-5 py-3 rounded-xl shadow-sm hover:bg-emerald-50 transition-all active:scale-95">
+          <i class="fa-solid fa-file-pdf text-red-500"></i> Cetak PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Search bar -->
+    <div class="px-6 py-4 border-t border-slate-100 flex gap-3 items-center">
+      <div class="flex-1 relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+        <input type="text" id="inputCari"
+          placeholder="Cari nama, NIP, atau skema..."
+          class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-400 transition-all"
+          oninput="filterData()">
+      </div>
+      <select id="filterSkema"
+        class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-400 transition-all cursor-pointer appearance-none pr-8"
+        onchange="filterData()" style="background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><path fill=%22%2394a3b8%22 d=%22M4 6l4 4 4-4%22 stroke=%22%2394a3b8%22 stroke-width=%221.5%22 fill=%22none%22/></svg>');background-repeat:no-repeat;background-position:right 10px center;background-size:16px">
+        <option value="">Semua Skema</option>
+      </select>
+      <button onclick="resetFilter()"
+        class="text-slate-400 hover:text-slate-600 px-3 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-sm" title="Reset filter">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+    </div>
+
+    <!-- Info hasil filter -->
+    <div class="px-6 pb-3 flex items-center justify-between">
+      <p class="text-xs text-slate-400 font-bold" id="infoHasil">Memuat data...</p>
+      <p class="text-xs text-slate-300 font-semibold" id="infoWaktu"></p>
+    </div>
+  </div>
+
+  <!-- ===== PRINT HEADER (hanya saat print) ===== -->
+  <div class="print-only" style="margin-bottom:16px">
+    <h2 style="font-size:16px;font-weight:800;margin-bottom:4px">Rekap Jadwal Peserta DQLP Periode 4</h2>
+    <p style="font-size:11px;color:#64748b">Universitas Muhammadiyah Malang · Dicetak: <span id="printTgl"></span></p>
+    <hr style="margin:10px 0;border-color:#e2e8f0">
+  </div>
+
+  <!-- ===== LOADING SKELETON ===== -->
+  <div id="loadingArea" class="bg-white rounded-2xl shadow-sm overflow-hidden no-print">
+    <div class="p-6 space-y-3">
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:120px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:140px"></div><div class="skeleton h-4 rounded" style="width:80px"></div><div class="skeleton h-4 rounded" style="width:80px"></div><div class="skeleton h-4 rounded" style="width:100px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:110px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:120px"></div><div class="skeleton h-4 rounded" style="width:90px"></div><div class="skeleton h-4 rounded" style="width:70px"></div><div class="skeleton h-4 rounded" style="width:110px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:130px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:100px"></div><div class="skeleton h-4 rounded" style="width:85px"></div><div class="skeleton h-4 rounded" style="width:90px"></div><div class="skeleton h-4 rounded" style="width:95px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:115px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:135px"></div><div class="skeleton h-4 rounded" style="width:75px"></div><div class="skeleton h-4 rounded" style="width:85px"></div><div class="skeleton h-4 rounded" style="width:105px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:125px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:110px"></div><div class="skeleton h-4 rounded" style="width:80px"></div><div class="skeleton h-4 rounded" style="width:95px"></div><div class="skeleton h-4 rounded" style="width:90px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:108px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:145px"></div><div class="skeleton h-4 rounded" style="width:88px"></div><div class="skeleton h-4 rounded" style="width:72px"></div><div class="skeleton h-4 rounded" style="width:115px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:118px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:125px"></div><div class="skeleton h-4 rounded" style="width:82px"></div><div class="skeleton h-4 rounded" style="width:78px"></div><div class="skeleton h-4 rounded" style="width:98px"></div></div>
+      <div class="flex gap-4 items-center"><div class="skeleton h-4 rounded" style="width:122px"></div><div class="skeleton h-4 rounded flex-1"></div><div class="skeleton h-4 rounded" style="width:115px"></div><div class="skeleton h-4 rounded" style="width:92px"></div><div class="skeleton h-4 rounded" style="width:86px"></div><div class="skeleton h-4 rounded" style="width:108px"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== TABEL UTAMA ===== -->
+  <div id="card-tabel" class="hidden bg-white rounded-2xl shadow-sm overflow-hidden anim-up">
+
+    <div class="overflow-x-auto custom-scroll">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-slate-800 text-white text-left">
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider whitespace-nowrap w-8 text-center">#</th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider whitespace-nowrap" style="cursor:pointer" onclick="sortBy('nip')">
+              NIP <i class="fa-solid fa-sort ml-1 opacity-40" id="sort-nip"></i>
+            </th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider" style="min-width:200px;cursor:pointer" onclick="sortBy('nama')">
+              Nama Lengkap <i class="fa-solid fa-sort-up ml-1 opacity-80" id="sort-nama"></i>
+            </th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider whitespace-nowrap" style="cursor:pointer" onclick="sortBy('skema')">
+              Skema <i class="fa-solid fa-sort ml-1 opacity-40" id="sort-skema"></i>
+            </th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider whitespace-nowrap" style="cursor:pointer" onclick="sortBy('sesi')">
+              Sesi <i class="fa-solid fa-sort ml-1 opacity-40" id="sort-sesi"></i>
+            </th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider whitespace-nowrap">Jam</th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider whitespace-nowrap">Ruang</th>
+            <th class="px-4 py-3.5 font-black text-xs uppercase tracking-wider" style="min-width:200px">Keterangan</th>
+          </tr>
+        </thead>
+        <tbody id="tabel-body" class="divide-y divide-slate-50">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyState" class="hidden py-16 text-center">
+      <i class="fa-solid fa-magnifying-glass text-4xl text-slate-200 mb-3"></i>
+      <p class="font-bold text-slate-500">Tidak ada data yang cocok.</p>
+      <p class="text-sm text-slate-400 mt-1">Coba kata kunci atau filter lain.</p>
+    </div>
+  </div>
+
+  <!-- ===== PAGINATION ===== -->
+  <div id="paginasiArea" class="hidden bg-white rounded-2xl shadow-sm px-5 py-4 flex items-center justify-between gap-3 flex-wrap no-print">
+    <p class="text-sm text-slate-400 font-semibold" id="paginasiInfo"></p>
+    <div id="paginasiBtn" class="flex items-center gap-1.5"></div>
+  </div>
+
+  <!-- ===== MODAL PREVIEW PDF ===== -->
+  <div id="modalPDF" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.85);z-index:200;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px">
+    <div style="width:100%;max-width:960px;background:#fff;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;max-height:90vh">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#1e293b">
+        <p style="color:#fff;font-weight:700;font-size:.9rem">Preview PDF — Rekap Jadwal DQLP Periode 4</p>
+        <div style="display:flex;gap:10px">
+          <button id="btnDownloadPDF"
+            style="background:#059669;color:#fff;border:none;padding:8px 18px;border-radius:10px;font-weight:700;font-size:.8rem;cursor:pointer">
+            <i class="fa-solid fa-download mr-1"></i> Unduh PDF
+          </button>
+          <button onclick="tutupPreviewPDF()"
+            style="background:#334155;color:#fff;border:none;width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1rem">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="iframePDF" style="flex:1;border:none;min-height:70vh"></iframe>
+    </div>
+  </div>
+  <div id="errorArea" class="hidden bg-white rounded-2xl shadow-sm p-10 text-center">
+    <i class="fa-solid fa-triangle-exclamation text-4xl text-amber-400 mb-3"></i>
+    <p class="font-bold text-slate-600" id="errorMsg">Gagal memuat data.</p>
+    <button onclick="muatData()" class="mt-4 bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold">
+      Coba Lagi
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  KONFIGURASI
+// ============================================================
+const API_URL      = "https://script.google.com/macros/s/AKfycbxX3koLHnuh1M1Ar3JXUl3v1TDaTNs6ErKIQbpeWfjIA4xMWyiQfiQ9dNuigCdhiVDl/exec";
+const TOKEN_ADMIN  = "2GajdANmgwQQ7aMGBk2Lg7rcKycLdjhs";
+
+// ============================================================
+//  STATE
+// ============================================================
+let semuaData    = [];   // data mentah dari GAS, sudah urut abjad
+let dataFilter   = [];   // setelah filter pencarian/skema
+let sortField    = 'nama';
+let sortAsc      = true;
+let skemaOptions = [];
+let halamanAktif = 1;
+const PER_HAL    = 25;   // baris per halaman
+
+// ============================================================
+//  SENSOR NIP — sembunyikan 4 digit tengah
+//  150407011992 → 1504****1992
+// ============================================================
+function sensorNip(nip) {
+  const s = String(nip).trim();
+  if (s.length <= 8) return s;
+  const vis = Math.floor(s.length / 3);
+  return s.slice(0, vis) + '****' + s.slice(-vis);
+}
+
+// ============================================================
+//  SKEMA YANG DISEMBUNYIKAN & LABEL KHUSUS (safety net di FE)
+// ============================================================
+const SKEMA_HIDDEN  = ["Pimpinan", "Instruktur Pengajar"];
+const SKEMA_LABEL   = {
+  "@Baru Masuk"   : { label: "Tasmi' (Wajib)", ket: "Wajib ikut Tasmi' untuk penentuan skema" },
+  "Pilih Skema P4": { label: "Studi Lanjut",    ket: "Studi Lanjut — menentukan skema sendiri"  },
+  "x"             : { label: "Belum Ada Skema", ket: "Konfirmasi ke Kesekretariatan DQLP"        },
+};
+
+// ============================================================
+//  MUAT DATA DARI GAS (sekali, cache di semuaData)
+// ============================================================
+async function muatData() {
+  document.getElementById('loadingArea').classList.remove('hidden');
+  document.getElementById('card-tabel').classList.add('hidden');
+  document.getElementById('errorArea').classList.add('hidden');
+
+  try {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 30000);
+    const r    = await fetch(`${API_URL}?action=rekap_jadwal&token=${TOKEN_ADMIN}`, { signal: ctrl.signal });
+    clearTimeout(tid);
+    const j = await r.json();
+
+    if (j.status !== 'ok') throw new Error(j.message || 'Gagal memuat data.');
+
+    // Filter + normalisasi label di sisi FE (safety net)
+    const raw = (j.data || []).filter(d => !SKEMA_HIDDEN.includes(d.skema));
+    raw.forEach(d => {
+      const khusus = SKEMA_LABEL[d.skema];
+      if (khusus) {
+        d.keterangan = d.keterangan || khusus.ket;
+        d.skema      = khusus.label;
+      }
+    });
+
+    // Urut abjad nama
+    semuaData = raw.sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'));
+
+    // Kumpulkan opsi skema unik (setelah normalisasi)
+    skemaOptions = [...new Set(semuaData.map(d => d.skema).filter(Boolean))].sort();
+    const sel = document.getElementById('filterSkema');
+    sel.innerHTML = '<option value="">Semua Skema</option>';
+    skemaOptions.forEach(sk => {
+      const opt = document.createElement('option');
+      opt.value = sk; opt.textContent = sk;
+      sel.appendChild(opt);
+    });
+
+    // Catat waktu muat
+    const now = new Date();
+    document.getElementById('infoWaktu').textContent =
+      'Dimuat ' + now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+    document.getElementById('printTgl').textContent =
+      now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) +
+      ' · ' + now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+
+    // Tampilkan stat
+    document.getElementById('statTotal').textContent = semuaData.length.toLocaleString('id');
+    document.getElementById('statBadge').classList.remove('hidden');
+
+    filterData();
+    document.getElementById('loadingArea').classList.add('hidden');
+    document.getElementById('card-tabel').classList.remove('hidden');
+
+  } catch(e) {
+    document.getElementById('loadingArea').classList.add('hidden');
+    document.getElementById('errorArea').classList.remove('hidden');
+    document.getElementById('errorMsg').textContent = e.name === 'AbortError'
+      ? 'Koneksi timeout. Periksa jaringan Anda.' : (e.message || 'Gagal memuat data.');
+  }
+}
+
+// ============================================================
+//  FILTER & RENDER
+// ============================================================
+function filterData() {
+  const q     = document.getElementById('inputCari').value.trim().toLowerCase();
+  const skema = document.getElementById('filterSkema').value;
+
+  dataFilter = semuaData.filter(d => {
+    const cocokSkema = !skema || d.skema === skema;
+    const cocokQ     = !q ||
+      (d.nama  || '').toLowerCase().includes(q) ||
+      (d.nip   || '').toLowerCase().includes(q) ||
+      (d.skema || '').toLowerCase().includes(q);
+    return cocokSkema && cocokQ;
+  });
+
+  halamanAktif = 1; // reset ke halaman pertama saat filter berubah
+  renderTabel(q);
+}
+
+function resetFilter() {
+  document.getElementById('inputCari').value   = '';
+  document.getElementById('filterSkema').value = '';
+  filterData();
+}
+
+function renderTabel(q = '') {
+  const tbody  = document.getElementById('tabel-body');
+  const empty  = document.getElementById('emptyState');
+  const pgArea = document.getElementById('paginasiArea');
+  const pgInfo = document.getElementById('paginasiInfo');
+  const pgBtn  = document.getElementById('paginasiBtn');
+
+  const total     = dataFilter.length;
+  const totalHal  = Math.max(1, Math.ceil(total / PER_HAL));
+  halamanAktif    = Math.min(halamanAktif, totalHal);
+  const mulai     = (halamanAktif - 1) * PER_HAL;
+  const dataPg    = dataFilter.slice(mulai, mulai + PER_HAL);
+
+  document.getElementById('infoHasil').textContent =
+    `Menampilkan ${total.toLocaleString('id')} dari ${semuaData.length.toLocaleString('id')} peserta`;
+
+  if (total === 0) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    pgArea.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  const hl = (str) => {
+    if (!q || !str) return str || '–';
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return String(str).replace(re, '<mark>$1</mark>');
+  };
+
+  const badgeSkema = (d) => {
+    const s = d.skema || '–';
+    const k = d.keterangan || '';
+    if (k.includes('Tasmi'))           return `<span class="badge-skema badge-tasmi">${s}</span>`;
+    if (k.includes('Studi Lanjut'))    return `<span class="badge-skema badge-studi">${s}</span>`;
+    if (k.includes('Kesekretariatan')) return `<span class="badge-skema badge-belum">${s}</span>`;
+    return `<span class="badge-skema">${s}</span>`;
+  };
+
+  const formatJam = (jam) => {
+    if (!jam) return '–';
+    const parts = jam.split(/\s*[–\-\/]\s*|s\/d/i).map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      return `<span style="display:block;font-weight:700;color:#334155">${parts[0]}</span>
+              <span style="display:block;color:#94a3b8;font-size:.7rem">${parts.slice(1).join(' – ')}</span>`;
+    }
+    return jam;
+  };
+
+  tbody.innerHTML = dataPg.map((d, i) => `
+    <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}">
+      <td class="px-4 py-3 text-center text-xs text-slate-300 font-bold">${mulai + i + 1}</td>
+      <td class="px-4 py-3 font-mono text-xs text-slate-500 font-semibold whitespace-nowrap">${hl(sensorNip(d.nip))}</td>
+      <td class="px-4 py-3 font-semibold text-slate-800" style="font-size:.82rem">${hl(d.nama)}</td>
+      <td class="px-4 py-3 whitespace-nowrap">${badgeSkema(d)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500 font-semibold whitespace-nowrap">${hl(d.sesi) || '–'}</td>
+      <td class="px-4 py-3 text-xs" style="min-width:60px">${formatJam(d.jam)}</td>
+      <td class="px-4 py-3 text-xs text-slate-500 font-semibold whitespace-nowrap">${d.ruang || '–'}</td>
+      <td class="px-4 py-3 text-xs text-slate-400 font-semibold" style="min-width:180px;line-height:1.5">${d.keterangan || ''}</td>
+    </tr>`).join('');
+
+  // ── Render pagination ──
+  if (totalHal <= 1) {
+    pgArea.classList.add('hidden');
+  } else {
+    pgArea.classList.remove('hidden');
+    const akhir = Math.min(mulai + PER_HAL, total);
+    pgInfo.textContent = `Halaman ${halamanAktif} / ${totalHal}  ·  Baris ${mulai + 1}–${akhir} dari ${total.toLocaleString('id')}`;
+
+    const btns = [];
+    btns.push(`<button class="pg-btn" onclick="pindahHal(${halamanAktif - 1})" ${halamanAktif === 1 ? 'disabled' : ''}>
+      <i class="fa-solid fa-chevron-left text-xs"></i>
+    </button>`);
+
+    const range = [];
+    if (totalHal <= 7) {
+      for (let p = 1; p <= totalHal; p++) range.push(p);
+    } else {
+      range.push(1);
+      if (halamanAktif > 3) range.push('...');
+      for (let p = Math.max(2, halamanAktif - 1); p <= Math.min(totalHal - 1, halamanAktif + 1); p++) range.push(p);
+      if (halamanAktif < totalHal - 2) range.push('...');
+      range.push(totalHal);
+    }
+
+    range.forEach(p => {
+      if (p === '...') {
+        btns.push(`<span style="padding:0 4px;color:#94a3b8;font-size:.8rem;font-weight:700">…</span>`);
+      } else {
+        btns.push(`<button class="pg-btn ${p === halamanAktif ? 'aktif' : ''}" onclick="pindahHal(${p})">${p}</button>`);
+      }
+    });
+
+    btns.push(`<button class="pg-btn" onclick="pindahHal(${halamanAktif + 1})" ${halamanAktif === totalHal ? 'disabled' : ''}>
+      <i class="fa-solid fa-chevron-right text-xs"></i>
+    </button>`);
+
+    pgBtn.innerHTML = btns.join('');
+  }
+
+  // Fade in tbody
+  tbody.classList.remove('fading');
+  document.getElementById('card-tabel').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function pindahHal(hal) {
+  const totalHal = Math.ceil(dataFilter.length / PER_HAL);
+  if (hal < 1 || hal > totalHal) return;
+  halamanAktif = hal;
+  const q = document.getElementById('inputCari').value.trim().toLowerCase();
+  // Fade out tbody sebentar lalu render
+  const tbody = document.getElementById('tabel-body');
+  tbody.classList.add('fading');
+  setTimeout(() => renderTabel(q), 150);
+}
+
+// ============================================================
+//  SORT
+// ============================================================
+const sortIcons = { asc:'fa-sort-up', desc:'fa-sort-down', none:'fa-sort' };
+
+function sortBy(field) {
+  if (sortField === field) sortAsc = !sortAsc;
+  else { sortField = field; sortAsc = true; }
+
+  // Reset semua ikon
+  ['nip','nama','skema','sesi'].forEach(f => {
+    const el = document.getElementById('sort-' + f);
+    if (!el) return;
+    el.className = 'fa-solid fa-sort ml-1 opacity-40';
+  });
+  const aktif = document.getElementById('sort-' + field);
+  if (aktif) aktif.className = `fa-solid ${sortAsc ? 'fa-sort-up' : 'fa-sort-down'} ml-1 opacity-80`;
+
+  semuaData.sort((a, b) => {
+    const va = String(a[field] || '').toLowerCase();
+    const vb = String(b[field] || '').toLowerCase();
+    return sortAsc ? va.localeCompare(vb, 'id') : vb.localeCompare(va, 'id');
+  });
+
+  filterData();
+}
+
+// ============================================================
+//  PREVIEW & CETAK PDF
+// ============================================================
+let _pdfBlob = null;
+
+function bukaPreviewPDF() {
+  // Cek jsPDF tersedia
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert('Library PDF belum siap. Tunggu sebentar lalu coba lagi.');
+    return;
+  }
+
+  const btn = document.querySelector('button[onclick="bukaPreviewPDF()"]');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Menyiapkan...'; }
+
+  try {
+    _pdfBlob = buatPDFBlob();
+    const url = URL.createObjectURL(_pdfBlob);
+
+    document.getElementById('iframePDF').src = url;
+    document.getElementById('modalPDF').style.display = 'flex';
+
+    document.getElementById('btnDownloadPDF').onclick = () => {
+      const a = document.createElement('a');
+      a.href = url;
+      const filterSkema = document.getElementById('filterSkema').value;
+      a.download = 'Rekap-Jadwal-DQLP-P4' + (filterSkema ? '-' + filterSkema.replace(/\s+/g,'-') : '') + '.pdf';
+      a.click();
+    };
+  } catch(e) {
+    alert('Gagal membuat PDF: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-file-pdf text-red-500 mr-1"></i> Cetak PDF'; }
+  }
+}
+
+function tutupPreviewPDF() {
+  document.getElementById('modalPDF').style.display = 'none';
+  document.getElementById('iframePDF').src = '';
+}
+
+function buatPDFBlob() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  const tgl = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(5, 150, 105);
+  doc.text('Rekap Jadwal Peserta DQLP Periode 4', 14, 16);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Universitas Muhammadiyah Malang', 14, 22);
+  doc.text('Dicetak: ' + tgl + '  ·  Total: ' + dataFilter.length + ' peserta', 14, 27);
+
+  const filterSkema = document.getElementById('filterSkema').value;
+  const filterQ     = document.getElementById('inputCari').value.trim();
+  if (filterSkema || filterQ) {
+    let ket = 'Filter aktif: ';
+    if (filterSkema) ket += 'Skema "' + filterSkema + '"';
+    if (filterQ)     ket += (filterSkema ? ' · ' : '') + 'Pencarian "' + filterQ + '"';
+    doc.text(ket, 14, 32);
+  }
+
+  doc.setDrawColor(226, 232, 240);
+  doc.line(14, 35, 283, 35);
+
+  const dataPDF = dataFilter.filter(d => {
+    const ket = d.keterangan || '';
+    return (d.sesi || d.jam || d.ruang) &&
+      !ket.includes('Tasmi') &&
+      !ket.includes('Studi Lanjut');
+  });
+
+  doc.autoTable({
+    startY: 38,
+    head: [['No', 'NIP', 'Nama Lengkap', 'Skema', 'Sesi', 'Jam', 'Ruang']],
+    body: dataPDF.map((d, i) => [
+      i + 1,
+      sensorNip(d.nip),
+      d.nama  || '–',
+      d.skema || '–',
+      d.sesi  || '–',
+      d.jam   || '–',
+      d.ruang || '–',
+    ]),
+    styles: {
+      font       : 'helvetica',
+      fontSize   : 7.5,
+      cellPadding: 1.5,
+      valign     : 'middle',
+      textColor  : [30, 41, 59],
+      lineColor  : [226, 232, 240],
+      lineWidth  : 0.2,
+    },
+    headStyles: {
+      fillColor  : [30, 41, 59],
+      textColor  : [255, 255, 255],
+      fontStyle  : 'bold',
+      fontSize   : 7.5,
+      cellPadding: 2,
+    },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    columnStyles: {
+      0: { halign:'center', cellWidth: 12  },
+      1: { cellWidth: 30, font:'courier'   },
+      2: { cellWidth: 70                   },
+      3: { cellWidth: 40                   },
+      4: { cellWidth: 18, halign:'center'  },
+      5: { cellWidth: 28                   },
+      6: { cellWidth: 35                   },
+    },
+    didDrawPage: (data) => {
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Halaman ${data.pageNumber} dari ${pageCount}  ·  DQLP Periode 4 — UMM`,
+        14, doc.internal.pageSize.height - 8
+      );
+    },
+    margin: { left:14, right:14 },
+  });
+
+  // Catatan kaki
+  const jmlTaskmi      = dataFilter.filter(d => (d.keterangan || '').includes('Tasmi')).length;
+  const jmlStudiLanjut = dataFilter.filter(d => (d.keterangan || '').includes('Studi Lanjut')).length;
+
+  if (jmlTaskmi > 0 || jmlStudiLanjut > 0) {
+    const finalY = doc.lastAutoTable.finalY + 6;
+    doc.setDrawColor(226, 232, 240);
+    doc.line(14, finalY, 283, finalY);
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Catatan Peserta Tidak Tercantum:', 14, finalY + 5);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    let notesY = finalY + 10;
+
+    if (jmlTaskmi > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('\u2022  Tasmi\u2019 Wajib (' + jmlTaskmi + ' peserta)', 16, notesY);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Wajib melapor ke Kesekretariatan DQLP untuk penentuan skema.', 22, notesY + 4);
+      notesY += 10;
+    }
+
+    if (jmlStudiLanjut > 0) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('\u2022  Studi Lanjut (' + jmlStudiLanjut + ' peserta)', 16, notesY);
+      doc.setFont('helvetica', 'normal');
+      const portalLabel = 'Memilih skema secara mandiri melalui portal: ';
+      doc.text(portalLabel, 22, notesY + 4);
+      doc.setTextColor(5, 150, 105);
+      doc.text('https://sdm-aik.umm.ac.id/dqlp/', 22 + doc.getTextWidth(portalLabel), notesY + 4);
+    }
+  }
+
+  return doc.output('blob');
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+muatData();
+</script>
+</body>
+</html>
