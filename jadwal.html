@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Pilih Jadwal DQLP – Periode 4</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --hijau: #059669;
+      --hijau-muda: #d1fae5;
+      --hijau-tua: #064e3b;
+      --merah: #ef4444;
+      --amber: #f59e0b;
+      --biru: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+    }
+
+    /* ===== ANIMASI ===== */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+    @keyframes spin     { to { transform:rotate(360deg); } }
+    @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.5} }
+    @keyframes shake    { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+    .anim-fade-up  { animation: fadeUp .35s ease-out both; }
+    .anim-fade     { animation: fadeIn .25s ease-out both; }
+    .anim-shake    { animation: shake .4s ease-out; }
+
+    .delay-1 { animation-delay:.07s }
+    .delay-2 { animation-delay:.14s }
+    .delay-3 { animation-delay:.21s }
+
+    /* ===== LOADER ===== */
+    .loader {
+      width:32px; height:32px;
+      border:3px solid #e2e8f0;
+      border-top-color: var(--hijau);
+      border-radius:50%;
+      animation: spin .8s linear infinite;
+    }
+
+    /* ===== UKURAN DASAR — ramah senior ===== */
+    body { font-size: 16px; }
+
+    /* ===== SEARCH RESULTS ===== */
+    .search-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px; cursor:pointer;
+      transition:background .15s;
+      border-bottom:1px solid #f1f5f9;
+    }
+    .search-item:last-child { border-bottom:none; }
+    .search-item:hover { background:#f0fdf4; }
+    .search-item:active { background:#dcfce7; }
+
+    /* ===== SKEMA CARD ===== */
+    .skema-card {
+      border:2px solid #e2e8f0;
+      border-radius:18px;
+      padding:20px;
+      cursor:pointer;
+      transition:all .2s;
+      position:relative;
+      background:#fff;
+    }
+    .skema-card:hover:not(.disabled):not(.current) { border-color:#059669; background:#f0fdf4; }
+    .skema-card.current { border-color:#059669; background:#f0fdf4; cursor:default; }
+    .skema-card.disabled { opacity:.5; cursor:not-allowed; background:#f8fafc; }
+    .skema-card.penuh { border-color:#fca5a5; background:#fff5f5; cursor:not-allowed; }
+    .skema-card.penuh:hover { border-color:#fca5a5; background:#fff5f5; }
+
+    .kuota-bar { height:7px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-top:10px; }
+    .kuota-fill { height:100%; border-radius:99px; transition:width .5s; }
+
+    /* ===== MODAL ===== */
+    .modal-bg {
+      position:fixed; inset:0;
+      background:rgba(15,23,42,.75);
+      backdrop-filter:blur(4px);
+      z-index:100;
+      display:flex; align-items:center; justify-content:center;
+      padding:20px;
+    }
+    .modal-box {
+      background:#fff;
+      border-radius:28px;
+      padding:36px 28px;
+      width:100%; max-width:420px;
+      animation: fadeUp .3s ease-out both;
+    }
+
+    /* ===== NIP INPUT ===== */
+    .nip-input {
+      width:100%;
+      padding:18px 20px;
+      background:#f8fafc;
+      border:2px solid #e2e8f0;
+      border-radius:14px;
+      font-size:1.25rem;
+      font-weight:700;
+      letter-spacing:.2em;
+      text-align:center;
+      outline:none;
+      transition:border-color .2s;
+    }
+    .nip-input:focus { border-color: var(--hijau); }
+    .nip-input.error { border-color: var(--merah); }
+
+    /* ===== BADGE ===== */
+    .badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:5px 12px; border-radius:99px;
+      font-size:.75rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+    }
+    .badge-hijau { background:#dcfce7; color:#166534; }
+    .badge-amber { background:#fef3c7; color:#92400e; }
+    .badge-merah { background:#fee2e2; color:#991b1b; }
+    .badge-abu   { background:#f1f5f9; color:#64748b; }
+
+    /* ===== SCROLLBAR ===== */
+    .custom-scroll::-webkit-scrollbar { width:5px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
+
+    /* ===== WARNING / DANGER BOX ===== */
+    .warning-box {
+      background:#fffbeb; border:1.5px solid #fbbf24;
+      border-radius:14px; padding:16px 18px;
+      display:flex; gap:12px; align-items:flex-start;
+    }
+    .danger-box {
+      background:#fff5f5; border:1.5px solid #fca5a5;
+      border-radius:14px; padding:16px 18px;
+      display:flex; gap:12px; align-items:flex-start;
+    }
+
+    /* ===== TOMBOL ===== */
+    .btn-hijau {
+      width:100%;
+      background: var(--hijau);
+      color:#fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight:700; font-size:1rem;
+      letter-spacing:.04em;
+      padding:17px; border-radius:14px;
+      border:none; cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-hijau:hover { background:#047857; }
+    .btn-hijau:active { transform:scale(.98); }
+    .btn-hijau:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+    .btn-outline {
+      width:100%;
+      background:transparent;
+      color:#64748b;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight:700; font-size:1rem;
+      letter-spacing:.04em;
+      padding:17px; border-radius:14px;
+      border:2px solid #e2e8f0; cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-outline:hover { border-color:#94a3b8; color:#334155; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+<div class="max-w-lg mx-auto space-y-4">
+
+  <!-- ===== HEADER ===== -->
+  <div class="bg-white rounded-2xl overflow-hidden shadow-sm anim-fade-up">
+    <div class="bg-emerald-600 px-6 py-6">
+      <p class="text-emerald-200 text-xs font-black uppercase tracking-[.14em] mb-1">Universitas Muhammadiyah Malang</p>
+      <h1 class="text-white text-2xl font-extrabold leading-tight">Pilih Jadwal & Skema</h1>
+      <p class="text-emerald-100 text-sm font-semibold mt-1">DQLP Periode 4</p>
+    </div>
+    <div class="px-6 py-4 bg-emerald-50 border-t border-emerald-100 flex items-center gap-3">
+      <i class="fa-solid fa-circle-info text-emerald-500 text-base flex-shrink-0"></i>
+      <p class="text-emerald-700 text-sm font-bold">Perpindahan jadwal maksimal <strong>2 kali</strong> sebelum kegiatan berlangsung.</p>
+    </div>
+  </div>
+
+  <!-- ===== FORM PENCARIAN ===== -->
+  <div id="formCari" class="bg-white rounded-2xl p-6 shadow-sm anim-fade-up delay-1">
+    <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2">Cari Nama Lengkap</label>
+    <div class="flex gap-3">
+      <input type="text" id="inputNama"
+        placeholder="Ketik minimal 3 huruf..."
+        class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 text-base font-semibold outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+        onkeydown="if(event.key==='Enter') cariNama()">
+      <button onclick="cariNama()" id="btnCari"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 rounded-xl font-bold text-lg transition-all active:scale-95 flex-shrink-0">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+
+    <!-- Hasil pencarian nama -->
+    <div id="hasilCari" class="hidden mt-3 rounded-xl border border-slate-100 overflow-hidden shadow-sm bg-white">
+    </div>
+  </div>
+
+  <!-- ===== LOADING DETAIL ===== -->
+  <div id="loadingDetail" class="hidden bg-white rounded-2xl p-12 text-center shadow-sm">
+    <div class="loader mx-auto mb-4" style="width:40px;height:40px;border-width:4px"></div>
+    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest" style="animation:pulse 1.5s infinite">Memuat data jadwal...</p>
+  </div>
+
+  <!-- ===== AREA HASIL ===== -->
+  <div id="areaHasil"></div>
+
+</div>
+
+<!-- ===== MODAL NIP ===== -->
+<div id="modalNip" class="modal-bg hidden">
+  <div class="modal-box">
+    <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+      <i class="fa-solid fa-id-card text-emerald-600 text-3xl"></i>
+    </div>
+    <h3 class="text-xl font-extrabold text-slate-800 text-center mb-2" id="modalNipJudul">Konfirmasi Identitas</h3>
+    <p class="text-slate-400 text-sm text-center mb-5 leading-relaxed" id="modalNipSub">Masukkan NIP Anda untuk memvalidasi perubahan skema.</p>
+
+    <div id="warningTerakhir" class="hidden danger-box mb-5">
+      <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="text-red-700 text-sm font-black uppercase tracking-wide">Perubahan Terakhir!</p>
+        <p class="text-red-600 text-sm font-semibold leading-relaxed mt-1">Ini adalah kesempatan terakhir Anda. Setelah ini, jadwal <strong>tidak dapat diubah lagi</strong>. Pastikan pilihan Anda sudah benar.</p>
+      </div>
+    </div>
+
+    <input type="text" id="nipInput" inputmode="numeric"
+      placeholder="Masukkan NIP..."
+      class="nip-input mb-2"
+      onkeydown="if(event.key==='Enter') prosesNip()">
+    <p id="nipError" class="text-red-500 text-sm font-bold text-center mb-4 hidden"></p>
+
+    <div class="grid grid-cols-2 gap-3 mt-3">
+      <button class="btn-outline" onclick="tutupModalNip(true)">Batal</button>
+      <button class="btn-hijau" id="btnKonfirmasiNip" onclick="prosesNip()">Konfirmasi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL KONFIRMASI AKHIR ===== -->
+<div id="modalKonfirmasi" class="modal-bg hidden">
+  <div class="modal-box">
+    <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+      <i class="fa-solid fa-calendar-check text-amber-500 text-3xl"></i>
+    </div>
+    <h3 class="text-xl font-extrabold text-slate-800 text-center mb-2">Konfirmasi Perubahan</h3>
+    <p class="text-slate-400 text-sm text-center mb-5">Periksa kembali pilihan jadwal Anda.</p>
+
+    <div class="bg-slate-50 rounded-2xl p-5 mb-5 space-y-4">
+      <div class="flex justify-between items-start gap-3">
+        <p class="text-sm text-slate-400 font-bold uppercase tracking-wide flex-shrink-0">Jadwal Sekarang</p>
+        <p class="text-sm font-black text-slate-600 text-right" id="konfirmasiDari">—</p>
+      </div>
+      <div class="h-px bg-slate-200"></div>
+      <div class="flex justify-between items-start gap-3">
+        <p class="text-sm text-slate-400 font-bold uppercase tracking-wide flex-shrink-0">Pindah Ke</p>
+        <p class="text-base font-black text-emerald-700 text-right" id="konfirmasiKe">—</p>
+      </div>
+    </div>
+
+    <div id="warningKonfirmasiTerakhir" class="hidden danger-box mb-5">
+      <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl flex-shrink-0 mt-0.5"></i>
+      <div>
+        <p class="text-red-700 text-sm font-black uppercase tracking-wide">Perubahan Terakhir!</p>
+        <p class="text-red-600 text-sm font-semibold leading-relaxed mt-1">Setelah dikonfirmasi, jadwal <strong>tidak bisa diubah lagi</strong>.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <button class="btn-outline" onclick="tutupModalKonfirmasi()">Kembali</button>
+      <button class="btn-hijau" id="btnSimpan" onclick="simpanPerubahan()"
+        style="background:#ef4444" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+        Ya, Pindahkan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL NOTIFIKASI ===== -->
+<div id="modalNotif" class="modal-bg hidden">
+  <div class="modal-box text-center">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" id="notifIconWrap">
+      <i class="text-3xl" id="notifIcon"></i>
+    </div>
+    <h3 class="text-xl font-extrabold text-slate-800 mb-3" id="notifJudul">Informasi</h3>
+    <p class="text-slate-500 text-base leading-relaxed" id="notifPesan"></p>
+    <button onclick="tutupNotif()" class="btn-hijau mt-6" style="max-width:220px;margin-left:auto;margin-right:auto">Tutup</button>
+  </div>
+</div>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loadingOverlay" class="modal-bg hidden flex-col gap-4">
+  <div class="loader" style="width:52px;height:52px;border-width:5px;border-top-color:#fff;border-color:rgba(255,255,255,.3)"></div>
+  <p class="text-white text-sm font-black uppercase tracking-widest" style="animation:pulse 1.5s infinite">Menyimpan perubahan...</p>
+</div>
+
+<script>
+// ============================================================
+//  KONFIGURASI — ganti URL sesuai deployment GAS Anda
+// ============================================================
+const API_URL        = "https://script.google.com/macros/s/AKfycbxX3koLHnuh1M1Ar3JXUl3v1TDaTNs6ErKIQbpeWfjIA4xMWyiQfiQ9dNuigCdhiVDl/exec";
+const TOKEN_PESERTA  = "265JGKgwFuzzQcMntAhbVBukbmGQVqjW";
+
+// ============================================================
+//  STATE
+// ============================================================
+let state = {
+  peserta   : null,   // { kode, nama, skema_awal, skema_aktif, jumlah_pindah }
+  skemaList : [],     // array jadwal/skema dari GAS
+  targetSkema: null,  // skema yang akan dipilih
+};
+
+// ============================================================
+//  HELPERS FETCH
+// ============================================================
+async function apiFetch(params, timeout = 18000) {
+  const p   = { ...params, token: TOKEN_PESERTA };
+  const url = `${API_URL}?${new URLSearchParams(p)}`;
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid);
+    return await r.json();
+  } catch(e) {
+    clearTimeout(tid);
+    if (e.name === 'AbortError') throw new Error('Koneksi timeout. Periksa jaringan Anda.');
+    throw e;
+  }
+}
+
+// ============================================================
+//  NIP SENSOR  (misal: 197001012000031001 → 1970****001)
+// ============================================================
+function sensorNip(nip) {
+  const s = String(nip);
+  if (s.length <= 6) return s;
+  return s.slice(0, 4) + '****' + s.slice(-3);
+}
+
+// ============================================================
+//  NOTIFIKASI
+// ============================================================
+function showNotif(pesan, tipe = 'info', judul = 'Informasi') {
+  const iconMap = {
+    info    : { icon:'fa-solid fa-circle-info',        wrapBg:'bg-blue-50',   iconColor:'text-blue-500'   },
+    sukses  : { icon:'fa-solid fa-circle-check',       wrapBg:'bg-emerald-50',iconColor:'text-emerald-600'},
+    error   : { icon:'fa-solid fa-circle-exclamation', wrapBg:'bg-red-50',    iconColor:'text-red-500'    },
+    warning : { icon:'fa-solid fa-triangle-exclamation',wrapBg:'bg-amber-50', iconColor:'text-amber-500'  },
+  };
+  const cfg = iconMap[tipe] || iconMap.info;
+  document.getElementById('notifIconWrap').className = `w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${cfg.wrapBg}`;
+  document.getElementById('notifIcon').className     = `${cfg.icon} text-2xl ${cfg.iconColor}`;
+  document.getElementById('notifJudul').innerText    = judul;
+  document.getElementById('notifPesan').innerText    = pesan;
+  document.getElementById('modalNotif').classList.remove('hidden');
+}
+function tutupNotif() {
+  document.getElementById('modalNotif').classList.add('hidden');
+}
+
+// ============================================================
+//  CARI NAMA
+// ============================================================
+async function cariNama() {
+  const nama = document.getElementById('inputNama').value.trim();
+  const box  = document.getElementById('hasilCari');
+
+  if (nama.length < 3) {
+    showNotif('Ketik minimal 3 huruf nama Anda.', 'warning', 'Perhatian');
+    return;
+  }
+
+  const btn = document.getElementById('btnCari');
+  btn.disabled = true;
+  box.classList.remove('hidden');
+  box.innerHTML = `<div class="p-6 flex items-center justify-center gap-3">
+    <div class="loader" style="width:24px;height:24px;border-width:3px"></div>
+    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">Mencari...</span>
+  </div>`;
+
+  try {
+    const j = await apiFetch({ action: 'cari_nama', nama });
+    box.innerHTML = '';
+
+    if (!j.hasil || j.hasil.length === 0) {
+      box.innerHTML = `<div class="p-6 text-center">
+        <i class="fa-solid fa-user-xmark text-slate-300 text-3xl mb-3"></i>
+        <p class="text-base font-bold text-slate-500">Nama tidak ditemukan.</p>
+        <p class="text-sm text-slate-400 mt-1">Coba kata kunci lain.</p>
+      </div>`;
+      return;
+    }
+
+    j.hasil.forEach(h => {
+      const el = document.createElement('div');
+      el.className = 'search-item';
+      el.innerHTML = `
+        <div>
+          <p class="text-base font-bold text-slate-700">${h.nama}</p>
+          <p class="text-sm text-slate-400 font-semibold mt-1">NIP: ${sensorNip(h.nip)}</p>
+        </div>
+        <i class="fa-solid fa-angle-right text-slate-300 text-lg"></i>`;
+      el.onclick = () => {
+        box.classList.add('hidden');
+        muatDetail(h.kode);
+      };
+      box.appendChild(el);
+    });
+  } catch(e) {
+    box.innerHTML = `<div class="p-5 text-center text-red-500 text-sm font-bold">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+//  MUAT DETAIL PESERTA
+// ============================================================
+async function muatDetail(kode) {
+  const area    = document.getElementById('areaHasil');
+  const loading = document.getElementById('loadingDetail');
+
+  area.innerHTML = '';
+  loading.classList.remove('hidden');
+  document.getElementById('formCari').classList.add('hidden');
+
+  try {
+    const j = await apiFetch({ action: 'detail_jadwal', kode });
+
+    if (j.status === 'not_found') {
+      renderError('Data peserta tidak ditemukan.', kode);
+      return;
+    }
+
+    state.peserta  = j.peserta;   // { kode, nama, skema_aktif, jumlah_pindah }
+    state.skemaList= j.skema;     // array skema
+
+    renderHasil();
+  } catch(e) {
+    renderError(e.message, kode);
+  } finally {
+    loading.classList.add('hidden');
+  }
+}
+
+// ============================================================
+//  KONFIGURASI MODE KHUSUS
+// ============================================================
+const BANNER_KHUSUS = {
+  tasmi: {
+    icon : 'fa-solid fa-quran',
+    warna: '#7c3aed',         // ungu
+    bg   : '#ede9fe',
+    judul: 'Wajib Mengikuti Tasmi\'',
+    isi  : 'Anda terdaftar dalam kelompok yang wajib mengikuti kegiatan <strong>Tasmi\'</strong> terlebih dahulu. Skema DQLP Anda akan ditentukan setelah kegiatan Tasmi\' selesai.',
+  },
+  konfirmasi: {
+    icon : 'fa-solid fa-triangle-exclamation',
+    warna: '#b45309',         // amber
+    bg   : '#fef3c7',
+    judul: 'Hubungi Kesekretariatan DQLP',
+    isi  : 'Data skema Anda belum tercatat dalam sistem. Silakan <strong>konfirmasi langsung ke Kesekretariatan DQLP</strong> untuk mendapatkan penetapan skema sebelum kegiatan berlangsung.',
+  },
+  pimpinan: {
+    icon : 'fa-solid fa-shield-halved',
+    warna: '#0369a1',         // biru
+    bg   : '#e0f2fe',
+    judul: 'Jadwal Pimpinan',
+    isi  : 'Jadwal kegiatan Anda diatur secara khusus oleh panitia DQLP. Untuk informasi lebih lanjut, hubungi Kesekretariatan DQLP.',
+  },
+};
+
+// ============================================================
+//  RENDER HASIL
+// ============================================================
+function renderHasil() {
+  const area = document.getElementById('areaHasil');
+  const p    = state.peserta;
+  const mode = p.mode_khusus;
+
+  // ── Tombol cari lagi (selalu ada) ──
+  const btnCariLagi = `
+    <div class="flex justify-end anim-fade-up">
+      <button onclick="resetCari()"
+        class="flex items-center gap-2 bg-white border border-slate-200 hover:border-emerald-400 text-slate-500 hover:text-emerald-600 px-5 py-3 rounded-full text-sm font-bold shadow-sm transition-all">
+        <i class="fa-solid fa-magnifying-glass text-xs"></i> Cari Nama Lain
+      </button>
+    </div>`;
+
+  // ── Header profil (selalu ada) ──
+  const headerProfil = `
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden anim-fade-up delay-1">
+      <div class="bg-emerald-600 px-6 py-6">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-user text-white text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="text-white font-extrabold text-lg leading-tight">${p.nama}</h2>
+            <p class="text-emerald-100 text-sm font-semibold mt-1">DQLP Periode 4</p>
+          </div>
+        </div>
+      </div>`;
+
+  // ── MODE KHUSUS: tasmi / konfirmasi / pimpinan ──────────────
+  if (mode === 'tasmi' || mode === 'konfirmasi' || mode === 'pimpinan') {
+    const cfg = BANNER_KHUSUS[mode];
+    area.innerHTML = `
+      ${btnCariLagi}
+      ${headerProfil}
+        <div class="px-6 py-5">
+          <div style="background:${cfg.bg};border-radius:16px;padding:20px;">
+            <div style="display:flex;gap:14px;align-items:flex-start;">
+              <div style="width:44px;height:44px;border-radius:12px;background:${cfg.warna};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="${cfg.icon}" style="color:#fff;font-size:1.1rem;"></i>
+              </div>
+              <div>
+                <p style="color:${cfg.warna};font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Informasi Penting</p>
+                <p style="color:#1e293b;font-size:1rem;font-weight:800;margin-bottom:8px;">${cfg.judul}</p>
+                <p style="color:#475569;font-size:.85rem;font-weight:600;line-height:1.6;">${cfg.isi}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 anim-fade-up delay-2">
+        <p class="text-sm text-slate-500 leading-relaxed font-semibold">
+          <i class="fa-solid fa-circle-info text-slate-400 mr-2"></i>
+          Hubungi panitia DQLP jika terdapat perbedaan data atau kendala teknis.
+        </p>
+      </div>`;
+    return;
+  }
+
+  // ── MODE NORMAL & STUDI LANJUT ──────────────────────────────
+  const maxPindah  = 2;
+  const sisaPindah = maxPindah - (p.jumlah_pindah || 0);
+  const bisaPindah = sisaPindah > 0;
+  const isStudiLanjut = mode === 'studi_lanjut';
+
+  // Banner jadwal aktif
+  const bannerJadwal = (() => {
+    const s = state.skemaList.find(s => s.id === p.skema_aktif)
+      || { id: p.skema_aktif, nama: p.skema_aktif, tanggal:'', waktu:'', lokasi:'', kapasitas:'', terisi:'0' };
+
+    const labelNama = isStudiLanjut ? 'Studi Lanjut — Pilih Skema' : s.nama;
+
+    const infoLines = [
+      s.tanggal ? `<span style="color:#a7f3d0;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-calendar-days" style="width:14px;opacity:.7"></i>${s.tanggal}</span>` : '',
+      s.waktu   ? `<span style="color:#a7f3d0;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-clock" style="width:14px;opacity:.7"></i>${s.waktu}</span>`           : '',
+      s.lokasi  ? `<span style="color:#a7f3d0;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-location-dot" style="width:14px;opacity:.7"></i>${s.lokasi}</span>`   : '',
+    ].filter(Boolean).join('');
+
+    const infoOrFallback = infoLines
+      ? `<div style="display:flex;flex-direction:column;gap:5px;">${infoLines}</div>`
+      : isStudiLanjut
+        ? `<p style="color:#6ee7b7;font-size:.82rem;font-weight:600;">Silakan pilih skema yang tersedia di bawah sesuai status Anda.</p>`
+        : `<p style="color:#6ee7b7;font-size:.82rem;font-weight:600;font-style:italic;opacity:.8">Detail jadwal akan diinformasikan lebih lanjut.</p>`;
+
+    return `
+      <div style="background:linear-gradient(135deg,#064e3b 0%,#065f46 100%);border-radius:16px;padding:18px 20px;">
+        <p style="color:#6ee7b7;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">
+          ${isStudiLanjut ? 'Status Anda' : 'Jadwal Anda Saat Ini'}
+        </p>
+        <p style="color:#fff;font-size:1.1rem;font-weight:800;line-height:1.3;margin-bottom:10px;">${labelNama}</p>
+        ${infoOrFallback}
+      </div>`;
+  })();
+
+  area.innerHTML = `
+    ${btnCariLagi}
+    ${headerProfil}
+
+      <!-- Status pindah -->
+      <div class="px-6 py-5 border-b border-slate-100">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-black text-slate-500 uppercase tracking-wide">Sisa Kesempatan Pindah</p>
+          <span class="badge ${sisaPindah > 1 ? 'badge-hijau' : sisaPindah === 1 ? 'badge-amber' : 'badge-merah'}">
+            ${sisaPindah > 0 ? `${sisaPindah}x tersisa` : 'Habis'}
+          </span>
+        </div>
+        <div class="flex gap-2">
+          ${[1,2].map(i => `
+            <div class="flex-1 h-3 rounded-full ${i <= (maxPindah - sisaPindah) ? 'bg-slate-300' : 'bg-emerald-500'}"></div>
+          `).join('')}
+        </div>
+        ${sisaPindah === 0 ? `
+          <p class="text-red-500 text-sm font-bold mt-3">
+            <i class="fa-solid fa-lock mr-1"></i> Kesempatan pindah sudah habis.
+          </p>` : ''}
+      </div>
+
+      <!-- Jadwal aktif -->
+      <div class="px-6 pb-5 pt-5">${bannerJadwal}</div>
+    </div>
+
+    <!-- Pilihan jadwal lain -->
+    ${bisaPindah ? `
+    <div class="bg-white rounded-2xl shadow-sm p-6 anim-fade-up delay-2">
+      <p class="text-sm font-black text-slate-400 uppercase tracking-wide mb-1">
+        ${isStudiLanjut ? 'Pilih Skema' : 'Pilih Jadwal Lain'}
+      </p>
+      <p class="text-sm text-slate-500 font-semibold mb-4">
+        ${isStudiLanjut
+          ? 'Anda terdaftar sebagai peserta Studi Lanjut. Pilih skema yang tersedia sesuai status Anda.'
+          : 'Klik skema yang ingin Anda pilih.'}
+      </p>
+      <div class="space-y-3" id="listSkema">
+        ${state.skemaList
+          .filter(s => s.hasKapasitas)
+          .map(s => renderKartuSkema(s, s.id === p.skema_aktif, !bisaPindah))
+          .join('')}
+      </div>
+    </div>` : `
+    <div class="bg-white rounded-2xl shadow-sm p-6 anim-fade-up delay-2">
+      <div class="text-center py-6">
+        <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-lock text-red-400 text-2xl"></i>
+        </div>
+        <p class="font-black text-slate-700 text-base">Tidak Dapat Mengubah Jadwal</p>
+        <p class="text-slate-400 text-sm mt-2">Batas perpindahan (2x) telah tercapai.</p>
+      </div>
+    </div>`}
+
+    <!-- Catatan -->
+    <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 anim-fade-up delay-3">
+      <p class="text-sm text-slate-500 leading-relaxed font-semibold">
+        <i class="fa-solid fa-circle-info text-slate-400 mr-2"></i>
+        Hubungi panitia DQLP jika terdapat perbedaan data atau kendala teknis.
+      </p>
+    </div>
+  `;
+}
+
+// ============================================================
+//  RENDER KARTU SKEMA
+// ============================================================
+function renderKartuSkema(s, isCurrent, disabled) {
+  const sisa  = s.kapasitas === '-' ? null : (parseInt(s.kapasitas) - parseInt(s.terisi || 0));
+  const penuh = sisa !== null && sisa <= 0;
+  const pct   = s.kapasitas === '-' ? 0 : Math.min(100, Math.round((parseInt(s.terisi||0) / parseInt(s.kapasitas)) * 100));
+
+  let cls = 'skema-card';
+  if (isCurrent) cls += ' current';
+  else if (disabled || penuh) cls += penuh ? ' penuh' : ' disabled';
+
+  const clickAttr = (!isCurrent && !disabled && !penuh)
+    ? `onclick="pilihSkema('${s.id}')"`
+    : '';
+
+  return `<div class="${cls}" ${clickAttr}>
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap mb-3">
+          <p class="text-base font-extrabold text-slate-800">${s.nama}</p>
+          ${isCurrent ? `<span class="badge badge-hijau"><i class="fa-solid fa-check text-[10px]"></i> Jadwal Anda</span>` : ''}
+          ${penuh ? `<span class="badge badge-merah">Penuh</span>` : ''}
+        </div>
+        <div class="space-y-2">
+          ${s.tanggal && s.tanggal !== '–' && s.tanggal !== '-' ? `
+          <p class="text-sm text-slate-500 font-semibold flex items-center gap-3">
+            <i class="fa-solid fa-calendar-days text-slate-300 w-4 text-center"></i>
+            ${s.tanggal}
+          </p>` : ''}
+          ${s.waktu && s.waktu !== '–' && s.waktu !== '-' ? `
+          <p class="text-sm text-slate-500 font-semibold flex items-center gap-3">
+            <i class="fa-solid fa-clock text-slate-300 w-4 text-center"></i>
+            ${s.waktu}
+          </p>` : ''}
+          ${s.lokasi && s.lokasi !== '–' && s.lokasi !== '-' ? `
+          <p class="text-sm text-slate-500 font-semibold flex items-center gap-3">
+            <i class="fa-solid fa-location-dot text-slate-300 w-4 text-center"></i>
+            ${s.lokasi}
+          </p>` : ''}
+          ${(!s.tanggal || s.tanggal === '–' || s.tanggal === '-') && (!s.waktu || s.waktu === '–' || s.waktu === '-') && (!s.lokasi || s.lokasi === '–' || s.lokasi === '-') ? `
+          <p class="text-sm text-slate-400 font-semibold italic">Detail jadwal akan diinformasikan lebih lanjut.</p>` : ''}
+        </div>
+      </div>
+      ${!isCurrent && !disabled && !penuh ? `
+        <div class="w-10 h-10 rounded-full border-2 border-slate-200 flex items-center justify-center flex-shrink-0 mt-1">
+          <i class="fa-solid fa-angle-right text-slate-400 text-base"></i>
+        </div>` : ''}
+    </div>
+
+    <!-- Kuota bar -->
+    ${s.kapasitas !== '-' ? `
+    <div class="mt-4 pt-4 border-t border-slate-100">
+      <div class="flex justify-between mb-1.5">
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wide">Kapasitas</p>
+        <p class="text-sm font-black ${penuh ? 'text-red-500' : sisa !== null && sisa <= 5 ? 'text-amber-600' : 'text-emerald-600'}">
+          ${sisa !== null ? `${sisa} sisa slot` : '-'}
+        </p>
+      </div>
+      <div class="kuota-bar">
+        <div class="kuota-fill" style="width:${pct}%;background:${penuh ? '#ef4444' : pct >= 80 ? '#f59e0b' : '#059669'}"></div>
+      </div>
+      <p class="text-xs text-slate-400 font-semibold mt-1.5">${s.terisi || 0} / ${s.kapasitas} peserta</p>
+    </div>` : ''}
+  </div>`;
+}
+
+// ============================================================
+//  PILIH SKEMA
+// ============================================================
+function pilihSkema(skemaId) {
+  const p          = state.peserta;
+  const jumlahPindah = p.jumlah_pindah || 0;
+  const adaTerakhir  = jumlahPindah >= 1; // ini akan jadi pindah ke-2 (terakhir)
+
+  state.targetSkema = skemaId;
+
+  // Tampilkan warning di modal NIP jika ini percobaan terakhir
+  const warnEl = document.getElementById('warningTerakhir');
+  if (adaTerakhir) {
+    warnEl.classList.remove('hidden');
+    document.getElementById('modalNipJudul').innerText = '⚠️ Konfirmasi Perubahan Terakhir';
+  } else {
+    warnEl.classList.add('hidden');
+    document.getElementById('modalNipJudul').innerText = 'Konfirmasi Identitas';
+  }
+
+  document.getElementById('modalNipSub').innerText = 'Masukkan NIP Anda untuk memvalidasi perubahan skema.';
+  document.getElementById('nipInput').value = '';
+  document.getElementById('nipInput').classList.remove('error');
+  document.getElementById('nipError').classList.add('hidden');
+  document.getElementById('modalNip').classList.remove('hidden');
+  setTimeout(() => document.getElementById('nipInput').focus(), 150);
+}
+
+function tutupModalNip(batalkan = false) {
+  document.getElementById('modalNip').classList.add('hidden');
+  if (batalkan) state.targetSkema = null;
+}
+
+// ============================================================
+//  PROSES NIP
+// ============================================================
+async function prosesNip() {
+  const nip = document.getElementById('nipInput').value.trim();
+  if (!nip) {
+    nipShake('Masukkan NIP Anda.');
+    return;
+  }
+
+  const btn = document.getElementById('btnKonfirmasiNip');
+  btn.disabled = true;
+  btn.innerText = 'Memverifikasi...';
+
+  try {
+    const j = await apiFetch({
+      action    : 'verifikasi_nip',
+      kode      : state.peserta.kode,
+      nip_input : nip
+    });
+
+    if (j.status !== 'ok') {
+      nipShake(j.message || 'NIP tidak sesuai. Coba lagi.');
+      return;
+    }
+
+    // NIP valid → tutup modal NIP (tanpa batalkan), buka modal konfirmasi akhir
+    tutupModalNip(false);
+    bukaModalKonfirmasi();
+
+  } catch(e) {
+    nipShake(e.message || 'Gagal memverifikasi. Coba lagi.');
+  } finally {
+    btn.disabled = false;
+    btn.innerText = 'Konfirmasi';
+  }
+}
+
+function nipShake(msg) {
+  const el = document.getElementById('nipInput');
+  const er = document.getElementById('nipError');
+  el.classList.add('error', 'anim-shake');
+  er.classList.remove('hidden');
+  er.innerText = msg;
+  setTimeout(() => el.classList.remove('anim-shake'), 500);
+}
+
+// ============================================================
+//  MODAL KONFIRMASI AKHIR
+// ============================================================
+function bukaModalKonfirmasi() {
+  const p      = state.peserta;
+  const target = state.skemaList.find(s => s.id === state.targetSkema);
+  // Skema aktif mungkin tidak ada di list (beda tipe) — fallback ke nilai mentah
+  const sumber = state.skemaList.find(s => s.id === p.skema_aktif);
+
+  document.getElementById('konfirmasiDari').innerText = sumber ? sumber.nama : (p.skema_aktif || '—');
+  document.getElementById('konfirmasiKe').innerText   = target ? target.nama : (state.targetSkema || '—');
+
+  const jumlahPindah = p.jumlah_pindah || 0;
+  const warnKonfirm  = document.getElementById('warningKonfirmasiTerakhir');
+  const btnSimpan    = document.getElementById('btnSimpan');
+
+  if (jumlahPindah >= 1) {
+    warnKonfirm.classList.remove('hidden');
+    btnSimpan.innerText = '⚠️ Ya, Pindahkan (Terakhir)';
+  } else {
+    warnKonfirm.classList.add('hidden');
+    btnSimpan.innerText = 'Ya, Pindahkan';
+  }
+
+  document.getElementById('modalKonfirmasi').classList.remove('hidden');
+}
+
+function tutupModalKonfirmasi() {
+  document.getElementById('modalKonfirmasi').classList.add('hidden');
+}
+
+// ============================================================
+//  SIMPAN PERUBAHAN
+// ============================================================
+async function simpanPerubahan() {
+  tutupModalKonfirmasi();
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+
+  try {
+    const j = await apiFetch({
+      action      : 'pindah_skema',
+      kode        : state.peserta.kode,
+      skema_baru  : state.targetSkema
+    }, 20000);
+
+    document.getElementById('loadingOverlay').classList.add('hidden');
+
+    if (j.status === 'ok') {
+      // Update state lokal
+      state.peserta.skema_aktif   = state.targetSkema;
+      state.peserta.jumlah_pindah = (state.peserta.jumlah_pindah || 0) + 1;
+      state.targetSkema = null;
+
+      // Update kuota skema di state
+      if (j.skema) state.skemaList = j.skema;
+
+      renderHasil();
+      showNotif('Jadwal Anda berhasil diperbarui!', 'sukses', 'Berhasil');
+    } else {
+      showNotif(j.message || 'Gagal menyimpan perubahan.', 'error', 'Gagal');
+    }
+  } catch(e) {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    showNotif(e.message || 'Gangguan jaringan. Coba lagi.', 'error', 'Gagal');
+  }
+}
+
+// ============================================================
+//  RESET
+// ============================================================
+function resetCari() {
+  document.getElementById('formCari').classList.remove('hidden');
+  document.getElementById('areaHasil').innerHTML = '';
+  document.getElementById('hasilCari').classList.add('hidden');
+  document.getElementById('inputNama').value = '';
+  document.getElementById('inputNama').focus();
+  state.peserta   = null;
+  state.skemaList = [];
+  state.targetSkema = null;
+}
+
+function renderError(msg, kode) {
+  document.getElementById('formCari').classList.remove('hidden');
+  document.getElementById('areaHasil').innerHTML = `
+    <div class="bg-white rounded-2xl p-8 text-center shadow-sm">
+      <i class="fa-solid fa-wifi text-5xl text-red-300 mb-4"></i>
+      <p class="font-bold text-slate-600 text-base">${msg}</p>
+      <button onclick="muatDetail('${kode}')"
+        class="mt-5 bg-emerald-600 text-white px-8 py-3 rounded-xl text-sm font-bold uppercase">
+        Coba Lagi
+      </button>
+    </div>`;
+}
+
+// ============================================================
+//  PROTEKSI (skip on mobile)
+// ============================================================
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+if (!isMobile) {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && [73,74,67].includes(e.keyCode)) || (e.ctrlKey && [85,83,80].includes(e.keyCode))) {
+      e.preventDefault(); return false;
+    }
+  });
+  const threshold = 160;
+  setInterval(() => {
+    if (window.outerWidth - window.innerWidth > threshold || window.outerHeight - window.innerHeight > threshold) {
+      document.body.innerHTML = '';
+    }
+  }, 1000);
+}
+</script>
+</body>
+</html>
