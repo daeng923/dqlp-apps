@@ -32,13 +32,8 @@
     <!-- FORM PENCARIAN -->
     <div id="formCari" class="bg-white rounded-2xl p-6 shadow-lg animate-fadeIn">
       <div class="space-y-4">
-        <div>
-          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Program Kegiatan</label>
-          <select id="kegiatan"
-            class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold outline-none appearance-none cursor-pointer focus:ring-2 focus:ring-emerald-500 transition-all">
-            <option value="">Memuat program...</option>
-          </select>
-        </div>
+        <!-- Kegiatan hardcode DQLP — tidak ditampilkan ke pengguna -->
+        <input type="hidden" id="kegiatan" value="DQLP">
         <div>
           <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Cari Nama Lengkap</label>
           <input type="text" id="nama"
@@ -159,22 +154,6 @@
     document.getElementById('notifModal').classList.replace('flex', 'hidden');
   }
 
-  /* ========== LOAD KEGIATAN ========== */
-  async function loadKegiatan() {
-    try {
-      const r = await fetchWithTimeout(`${API_URL}?action=list_kegiatan`);
-      const j = await r.json();
-      const s = document.getElementById("kegiatan");
-      s.innerHTML = '<option value="">Pilih Program</option>';
-      (j.kegiatan || []).forEach(k => {
-        s.innerHTML += `<option value="${k}">${k}</option>`;
-      });
-    } catch(err) {
-      document.getElementById("kegiatan").innerHTML = '<option value="">Gagal memuat program</option>';
-    }
-  }
-  loadKegiatan();
-
   /* ========== ACCORDION ========== */
   function toggleAcc(id) {
     const el      = document.getElementById(id);
@@ -189,7 +168,7 @@
     const nama = document.getElementById("nama").value.trim();
     const list = document.getElementById("listSearch");
 
-    if (!k)          return showNotif('Pilih program kegiatan terlebih dahulu.');
+
     if (nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
 
     const btn = document.getElementById("btnCari");
@@ -623,7 +602,7 @@
     });
 
     // Deteksi devtools terbuka via resize (heuristik sederhana)
-    const threshold = 160; 
+    const threshold = 160;
     setInterval(() => {
       const devOpen =
         window.outerWidth  - window.innerWidth  > threshold ||
