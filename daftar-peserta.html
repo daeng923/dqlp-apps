@@ -661,10 +661,10 @@ function buatPDFBlob() {
       doc.setFont('helvetica', 'bold');
       doc.text('\u2022  Studi Lanjut (' + jmlStudiLanjut + ' peserta)', 16, notesY);
       doc.setFont('helvetica', 'normal');
-      const portalLabel = 'Memilih skema secara mandiri melalui portal: ';
-      doc.text(portalLabel, 22, notesY + 4);
+      doc.text('Memilih skema secara mandiri atau peserta yang ingin pindah skema bisa melalui portal:', 22, notesY + 4);
       doc.setTextColor(5, 150, 105);
-      doc.text('https://sdm-aik.umm.ac.id/dqlp/', 22 + doc.getTextWidth(portalLabel), notesY + 4);
+      doc.text('https://sdm-aik.umm.ac.id/dqlp/jadwal-pindah-skema/', 22, notesY + 9);
+      doc.setTextColor(71, 85, 105);
     }
   }
 
