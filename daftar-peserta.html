@@ -276,14 +276,11 @@ function sensorNip(nip) {
 }
 
 // ============================================================
-//  SKEMA YANG DISEMBUNYIKAN & LABEL KHUSUS (safety net di FE)
+//  SKEMA YANG DISEMBUNYIKAN & LABEL KHUSUS
+//  — sudah dihandle di GAS, FE hanya terima data bersih
 // ============================================================
-const SKEMA_HIDDEN  = ["Pimpinan", "Instruktur Pengajar"];
-const SKEMA_LABEL   = {
-  "@Baru Masuk"   : { label: "Tasmi' (Wajib)", ket: "Wajib ikut Tasmi' untuk penentuan skema" },
-  "Pilih Skema P4": { label: "Studi Lanjut",    ket: "Studi Lanjut — menentukan skema sendiri"  },
-  "x"             : { label: "Belum Ada Skema", ket: "Konfirmasi ke Kesekretariatan DQLP"        },
-};
+const SKEMA_HIDDEN  = [];   // filtering dilakukan di GAS
+const SKEMA_LABEL   = {};   // normalisasi label dilakukan di GAS
 
 // ============================================================
 //  MUAT DATA DARI GAS (sekali, cache di semuaData)
@@ -302,20 +299,10 @@ async function muatData() {
 
     if (j.status !== 'ok') throw new Error(j.message || 'Gagal memuat data.');
 
-    // Filter + normalisasi label di sisi FE (safety net)
-    const raw = (j.data || []).filter(d => !SKEMA_HIDDEN.includes(d.skema));
-    raw.forEach(d => {
-      const khusus = SKEMA_LABEL[d.skema];
-      if (khusus) {
-        d.keterangan = d.keterangan || khusus.ket;
-        d.skema      = khusus.label;
-      }
-    });
+    // Urut abjad nama — data dari GAS sudah bersih
+    semuaData = (j.data || []).sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'));
 
-    // Urut abjad nama
-    semuaData = raw.sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'));
-
-    // Kumpulkan opsi skema unik (setelah normalisasi)
+    // Kumpulkan opsi skema unik
     skemaOptions = [...new Set(semuaData.map(d => d.skema).filter(Boolean))].sort();
     const sel = document.getElementById('filterSkema');
     sel.innerHTML = '<option value="">Semua Skema</option>';
@@ -333,7 +320,6 @@ async function muatData() {
       now.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }) +
       ' · ' + now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
 
-    // Tampilkan stat
     document.getElementById('statTotal').textContent = semuaData.length.toLocaleString('id');
     document.getElementById('statBadge').classList.remove('hidden');
 
