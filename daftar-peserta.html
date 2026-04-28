@@ -675,6 +675,25 @@ function buatPDFBlob() {
 //  INIT
 // ============================================================
 muatData();
+
+// ============================================================
+//  PROTEKSI — disable klik kanan & devtools (skip on mobile)
+// ============================================================
+const _isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+
+if (!_isMobile) {
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (
+      e.keyCode === 123 ||                                              // F12
+      (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || // Ctrl+Shift+I/J/C
+      (e.ctrlKey && e.keyCode === 85) ||                               // Ctrl+U
+      (e.ctrlKey && e.keyCode === 83) ||                               // Ctrl+S
+      (e.ctrlKey && e.keyCode === 80)                                  // Ctrl+P
+    ) { e.preventDefault(); return false; }
+  });
+}
 </script>
 </body>
 </html>
