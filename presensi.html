@@ -293,7 +293,7 @@
       document.getElementById('pencarianBox').classList.add('hidden');
       document.getElementById('formSection').classList.remove('hidden');
       document.getElementById('txtNama').innerText  = item.nama;
-      document.getElementById('txtNip').innerText   = item.nip;
+      document.getElementById('txtNip').innerText   = sensorNip(item.nip);
       document.getElementById('txtSkema').innerText = item.skema || '-';
 
       const foto     = item.foto ? item.foto.replace('http://', 'https://') : '';
