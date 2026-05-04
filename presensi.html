@@ -38,10 +38,13 @@
         class="w-full btn-emerald text-white py-4 rounded-2xl font-bold shadow-lg">
         CARI DATA
       </button>
-      <div id="loadingSearch" class="hidden mt-6 text-center">
-        <div class="loader mx-auto"></div>
+      <div id="loadingSearch" class="hidden mt-4 border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+        <div class="p-6 flex items-center justify-center gap-3">
+          <div class="loader" style="width:24px;height:24px;border-width:3px"></div>
+          <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">Mencari...</span>
+        </div>
       </div>
-      <div id="listHasil" class="hidden mt-4 border rounded-2xl divide-y overflow-hidden bg-white shadow-inner"></div>
+      <div id="listHasil" class="hidden mt-4 border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm"></div>
     </div>
 
     <!-- FORM KONFIRMASI -->
@@ -222,9 +225,16 @@
       }
     }
 
+    /* ========== SENSOR NIP ========== */
+    function sensorNip(nip) {
+      const s = String(nip);
+      if (s.length <= 6) return s;
+      return s.slice(0, 4) + '•••••' + s.slice(-3);
+    }
+
     /* ========== CARI NAMA ========== */
     async function cari() {
-      const nama   = document.getElementById('namaCari').value.trim();
+      const nama = document.getElementById('namaCari').value.trim();
       if (nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
 
       const list   = document.getElementById('listHasil');
@@ -243,19 +253,35 @@
         const j = await r.json();
 
         if (!j.hasil || j.hasil.length === 0) {
-          list.innerHTML = '<div class="p-6 text-center text-slate-400 italic">Nama tidak ditemukan.</div>';
+          list.innerHTML = `
+            <div class="p-8 text-center">
+              <i class="fa-solid fa-user-xmark text-slate-300 text-3xl mb-3"></i>
+              <p class="text-sm font-bold text-slate-500">Nama tidak ditemukan.</p>
+              <p class="text-xs text-slate-400 mt-1">Coba kata kunci lain.</p>
+            </div>`;
         } else {
           j.hasil.forEach(item => {
             const d = document.createElement('div');
-            d.className = 'p-5 text-base font-semibold text-slate-700 hover:bg-emerald-50 cursor-pointer flex justify-between items-center';
-            d.innerHTML = `<span>${item.nama}</span><i class="fa-solid fa-angle-right text-emerald-200"></i>`;
-            d.onclick   = () => pilihPeserta(item);
+            d.className = 'flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-emerald-50 active:bg-emerald-100 transition-all border-b border-slate-50 last:border-0';
+            d.innerHTML = `
+              <div>
+                <p class="text-base font-bold text-slate-700 leading-tight">${item.nama}</p>
+                <p class="text-xs text-slate-400 font-semibold mt-1">
+                  <i class="fa-solid fa-id-card mr-1 text-slate-300"></i>${sensorNip(item.nip)}
+                </p>
+              </div>
+              <i class="fa-solid fa-angle-right text-slate-300 text-base flex-shrink-0 ml-3"></i>`;
+            d.onclick = () => pilihPeserta(item);
             list.appendChild(d);
           });
         }
         list.classList.remove('hidden');
       } catch (err) {
-        showNotif(err.message || 'Gagal memuat data. Periksa koneksi Anda.');
+        list.innerHTML = `
+          <div class="p-6 text-center text-red-400 text-sm font-bold">
+            <i class="fa-solid fa-wifi mr-2"></i>${err.message || 'Gagal memuat data.'}
+          </div>`;
+        list.classList.remove('hidden');
       } finally {
         loader.classList.add('hidden');
         btn.disabled = false;
