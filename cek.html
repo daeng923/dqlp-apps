@@ -239,8 +239,21 @@
       const sisa = 10 - (p.total % 10);
       const pct  = ((p.total % 10) / 10) * 100;
 
-      const logSert = {};
+      const logSert      = {};
       (j.riwayatSertifikat || []).forEach(s => logSert[s.periode] = s);
+      const izinP1       = j.izinP1 || false;
+      const izinP2       = j.izinP2 || false;
+      const statusPeriode = j.statusPeriode || {};
+
+      // DEBUG — hapus setelah fix
+      console.log('=== DEBUG PORTAL ===');
+      console.log('statusPeriode:', JSON.stringify(statusPeriode));
+      console.log('izinP1:', izinP1, '| izinP2:', izinP2);
+      console.log('label_periode:', p.label_periode);
+      console.log('hak:', hak);
+      p.label_periode && p.label_periode.forEach(l => {
+        console.log(`  [${l}] statusPeriode[label]="${statusPeriode[l]}" isAktif=${statusPeriode[l] === 'AKTIF'}`);
+      });
 
       // Render kartu profil
       resArea.innerHTML = `
@@ -307,14 +320,20 @@
           <div id="acc-sertifikat" class="hidden px-4 pb-4 space-y-3">
 
             ${(() => {
-              // Ambil label periode secara urut dari GAS (fleksibel: Periode 1/2/3, Batch, Semester, dst)
-              const labelPeriode = p.label_periode || Object.keys(p.rincian_periode);
+              const labelPeriode     = p.label_periode || Object.keys(p.rincian_periode);
+              const periodeAkumulasi = new Set(labelPeriode.slice(0, hak));
 
-              // Sertifikat ke-N = label urutan ke-N dari header Sheet1
-              // Jumlah hak = Math.floor(total / 10) — akumulasi lintas periode
-              const sertifikatLayak = labelPeriode.slice(0, hak);
+              // Bangun set periode yang tampil:
+              // 1. Dari akumulasi kehadiran
+              // 2. Dari izin khusus admin (izinP1 = label yang mengandung "1", izinP2 = mengandung "2")
+              const periodeSet = new Set(periodeAkumulasi);
+              if (izinP1) labelPeriode.filter(l => l.includes('1')).forEach(l => periodeSet.add(l));
+              if (izinP2) labelPeriode.filter(l => l.includes('2')).forEach(l => periodeSet.add(l));
 
-              if (sertifikatLayak.length === 0) {
+              // Urutkan sesuai urutan label_periode asli
+              const periodeTampil = labelPeriode.filter(l => periodeSet.has(l));
+
+              if (periodeTampil.length === 0) {
                 return `<div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100">
                   <i class="fa-solid fa-hourglass-half text-3xl text-slate-300 mb-2"></i>
                   <p class="text-slate-400 text-sm font-bold">Belum ada sertifikat yang layak terbit.</p>
@@ -322,37 +341,51 @@
                 </div>`;
               }
 
-              return sertifikatLayak.map((labelSert, idx) => {
-                const terbit    = logSert[labelSert];
-                const noSert    = idx + 1;
-                const kehadiran = p.rincian_periode[labelSert] || 0;
+              return periodeTampil.map((labelSert, idx) => {
+                const terbit       = logSert[labelSert];
+                const noSert       = idx + 1;
+                const kehadiran    = p.rincian_periode[labelSert] || 0;
+                const isAktif      = statusPeriode[labelSert] === 'AKTIF';
+                const isIzinKhusus = !periodeAkumulasi.has(labelSert);
+
+                let tombol = '';
+                if (terbit) {
+                  tombol = `<button onclick="kirimWA('${terbit.link}','${labelSert}')"
+                    class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 uppercase tracking-wider transition-all">
+                    <i class="fa-brands fa-whatsapp text-green-400"></i> Kirim ke WhatsApp
+                  </button>`;
+                } else if (!isAktif) {
+                  tombol = `<button disabled
+                    class="w-full border-2 border-slate-200 text-slate-300 bg-slate-50 py-3 rounded-xl text-xs font-black uppercase tracking-wider cursor-not-allowed flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-lock text-slate-300"></i> Periode Tidak Aktif
+                  </button>`;
+                } else {
+                  tombol = `<button id="btn-${labelSert}" onclick="generate('${labelSert}','${p.kode}')"
+                    class="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                    Terbitkan Sekarang
+                  </button>`;
+                }
 
                 return `
                 <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4">
                   <div class="flex justify-between items-center mb-1">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                       <span class="w-6 h-6 bg-slate-800 text-white text-[10px] font-black rounded-lg flex items-center justify-center flex-shrink-0">${noSert}</span>
                       <span class="text-sm font-black text-slate-700">${labelSert}</span>
+                      ${isIzinKhusus ? `<span class="bg-blue-50 text-blue-500 text-[9px] px-2 py-0.5 rounded-full font-black border border-blue-100 uppercase">Izin Khusus</span>` : ''}
                     </div>
                     <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${
                       terbit
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                        : 'bg-amber-50 text-amber-600 border border-amber-100'
-                    } uppercase">${terbit ? 'Terarsip' : 'Belum Terbit'}</span>
+                        : isAktif
+                          ? 'bg-amber-50 text-amber-600 border border-amber-100'
+                          : 'bg-slate-100 text-slate-400 border border-slate-200'
+                    } uppercase">${terbit ? 'Terarsip' : isAktif ? 'Belum Terbit' : 'Nonaktif'}</span>
                   </div>
                   <p class="text-[10px] text-slate-400 font-bold mb-3 pl-8">
                     Kehadiran periode ini: ${kehadiran}x
                   </p>
-                  ${terbit
-                    ? `<button onclick="kirimWA('${terbit.link}','${labelSert}')"
-                        class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 uppercase tracking-wider transition-all">
-                        <i class="fa-brands fa-whatsapp text-green-400"></i> Kirim ke WhatsApp
-                      </button>`
-                    : `<button id="btn-${labelSert}" onclick="generate('${labelSert}','${p.kode}')"
-                        class="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
-                        Terbitkan Sekarang
-                      </button>`
-                  }
+                  ${tombol}
                 </div>`;
               }).join('');
             })()}
