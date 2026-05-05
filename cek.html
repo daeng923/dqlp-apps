@@ -62,6 +62,15 @@
 
   </div>
 
+  <!-- FLOATING TOMBOL WA KONSULTASI -->
+  <a href="https://wa.me/6281355662489?text=Halo%2C%20saya%20ingin%20konsultasi%20terkait%20sertifikat%20DQLP%20UMM."
+    target="_blank"
+    class="fixed bottom-6 left-6 z-[90] flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-xl transition-all active:scale-95"
+    title="Konsultasi ke Kesekretariatan">
+    <i class="fa-brands fa-whatsapp text-xl"></i>
+    <span class="text-xs font-black uppercase tracking-wider">Konsultasi</span>
+  </a>
+
   <!-- MODAL VERIFIKASI NIP -->
   <div id="nipModal"
     class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
@@ -116,7 +125,7 @@
   </div>
 
 <script>
-  const API_URL       = "https://script.google.com/macros/s/AKfycbxyNWY67lxEmqee9QfJr7LiPJrWWmAOYnpp0tiAtp3G1fMKrx-mzWAqxbaUu718pTbA/exec";
+  const API_URL       = "https://script.google.com/macros/s/AKfycbxL-61jc2cQSIm-InluysdrEqyd1kE-5HRoPkFl3tYqpFxLJfi8iiRnlKO-PdsQOdNk/exec";
   // Generate sertifikat via Project 4 (Dashboard Admin) yang punya izin UrlFetchApp
   const API_URL_ADMIN = "https://script.google.com/macros/s/AKfycbxplpLBevNDxvPAchwesXszGivyV8cf5dy9e8EkhHLAyNB4BsscmS0TxSCA5tXTJKgOLw/exec";
 
@@ -241,19 +250,12 @@
 
       const logSert      = {};
       (j.riwayatSertifikat || []).forEach(s => logSert[s.periode] = s);
-      const izinP1       = j.izinP1 || false;
-      const izinP2       = j.izinP2 || false;
+      const izinP1        = j.izinP1 || false;
+      const izinP2        = j.izinP2 || false;
       const statusPeriode = j.statusPeriode || {};
+      const skemaPeriode  = j.skemaPeriode  || {};
 
-      // DEBUG — hapus setelah fix
-      console.log('=== DEBUG PORTAL ===');
-      console.log('statusPeriode:', JSON.stringify(statusPeriode));
-      console.log('izinP1:', izinP1, '| izinP2:', izinP2);
-      console.log('label_periode:', p.label_periode);
-      console.log('hak:', hak);
-      p.label_periode && p.label_periode.forEach(l => {
-        console.log(`  [${l}] statusPeriode[label]="${statusPeriode[l]}" isAktif=${statusPeriode[l] === 'AKTIF'}`);
-      });
+
 
       // Render kartu profil
       resArea.innerHTML = `
@@ -276,30 +278,26 @@
                 class="w-full h-full object-cover">
             </div>
             <h2 class="text-white font-bold text-lg leading-tight">${p.nama}</h2>
-            <p class="text-emerald-100 text-xs font-bold mt-1 uppercase tracking-wider">${p.skema_asli}</p>
+            <p class="text-emerald-100 text-xs font-bold mt-1 uppercase tracking-wider">${p.skema_asli.split(' ')[0]}</p>
+            <p class="text-emerald-200 text-[10px] font-semibold mt-0.5 tracking-wide">Skema periode berjalan</p>
           </div>
 
           <!-- Progress kehadiran -->
           <div class="-mt-8 mx-4 mb-4">
             <div class="bg-white rounded-2xl p-5 shadow-xl border border-slate-100">
-              <div class="flex items-center gap-4 mb-4">
-                <div class="bg-slate-800 w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-black flex-shrink-0">
-                  ${hak}
-                </div>
-                <div>
-                  <p class="text-xs font-black text-slate-800 uppercase tracking-tight">Sertifikat Layak Terbit</p>
-                  <p class="text-xs text-slate-400 font-bold mt-0.5">Total Kehadiran: <span class="text-emerald-600 font-black">${p.total}</span> Pertemuan</p>
-                </div>
+              <div class="flex items-center justify-between mb-4 mt-1">
+                <p class="text-xs font-black text-slate-500 uppercase tracking-widest">Total Kehadiran</p>
+                <p class="text-2xl font-black text-slate-800">${p.total} <span class="text-xs text-slate-400 font-bold">Pertemuan</span></p>
               </div>
               <div class="bg-slate-100 rounded-full h-2.5 w-full overflow-hidden">
                 <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000" style="width:${pct}%"></div>
               </div>
-              <div class="flex justify-between mt-2">
-                <p class="text-[10px] text-slate-400 font-bold">
-                  ${sisa === 10 ? '✓ Ambang berikutnya tercapai' : `Butuh ${sisa} kehadiran lagi`}
-                </p>
-                <p class="text-[10px] text-emerald-600 font-black">${pct.toFixed(0)}%</p>
-              </div>
+              <p class="text-[10px] text-slate-400 font-bold mt-2.5 mb-1">
+                ${sisa === 10
+                  ? '<span class="text-emerald-600">✓ Kelipatan 10 tercapai — cek sertifikat di bawah</span>'
+                  : `Butuh <strong>${sisa}</strong> kehadiran lagi untuk sertifikat berikutnya`
+                }
+              </p>
             </div>
           </div>
         </div>
@@ -331,7 +329,20 @@
               if (izinP2) labelPeriode.filter(l => l.includes('2')).forEach(l => periodeSet.add(l));
 
               // Urutkan sesuai urutan label_periode asli
-              const periodeTampil = labelPeriode.filter(l => periodeSet.has(l));
+              // Hanya tampilkan periode yang:
+              // 1. Sudah terbit (ada di LOG_SERTIFIKAT) — selalu tampil
+              // 2. Berhak dari akumulasi + AKTIF
+              // 3. Izin admin + AKTIF
+              // Sembunyikan periode nonaktif yang belum terbit
+              const periodeTampil = labelPeriode.filter(l => {
+                const terbit   = logSert[l];
+                const isAktif  = statusPeriode[l] === 'AKTIF';
+                const isHak    = periodeAkumulasi.has(l);
+                const isIzin   = periodeSet.has(l) && !isHak; // izin khusus admin
+                if (terbit)  return true;  // sudah terbit — selalu tampil
+                if (!isAktif) return false; // nonaktif + belum terbit — sembunyikan
+                return isHak || isIzin;    // aktif + berhak atau izin
+              });
 
               if (periodeTampil.length === 0) {
                 return `<div class="bg-slate-50 rounded-2xl p-5 text-center border border-slate-100">
@@ -354,11 +365,6 @@
                     class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 uppercase tracking-wider transition-all">
                     <i class="fa-brands fa-whatsapp text-green-400"></i> Kirim ke WhatsApp
                   </button>`;
-                } else if (!isAktif) {
-                  tombol = `<button disabled
-                    class="w-full border-2 border-slate-200 text-slate-300 bg-slate-50 py-3 rounded-xl text-xs font-black uppercase tracking-wider cursor-not-allowed flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-lock text-slate-300"></i> Periode Tidak Aktif
-                  </button>`;
                 } else {
                   tombol = `<button id="btn-${labelSert}" onclick="generate('${labelSert}','${p.kode}')"
                     class="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
@@ -377,13 +383,11 @@
                     <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${
                       terbit
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                        : isAktif
-                          ? 'bg-amber-50 text-amber-600 border border-amber-100'
-                          : 'bg-slate-100 text-slate-400 border border-slate-200'
-                    } uppercase">${terbit ? 'Terarsip' : isAktif ? 'Belum Terbit' : 'Nonaktif'}</span>
+                        : 'bg-amber-50 text-amber-600 border border-amber-100'
+                    } uppercase">${terbit ? 'Terarsip' : 'Belum Terbit'}</span>
                   </div>
                   <p class="text-[10px] text-slate-400 font-bold mb-3 pl-8">
-                    Kehadiran periode ini: ${kehadiran}x
+                    ${skemaPeriode[labelSert] ? `<span class="text-emerald-600 font-black uppercase">${skemaPeriode[labelSert]}</span> · ` : ''}${kehadiran}x kehadiran
                   </p>
                   ${tombol}
                 </div>`;
@@ -484,12 +488,22 @@
         </div>
 
         <!-- CATATAN SISTEM -->
-        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 animate-fadeIn">
-          <p class="text-[10px] text-slate-500 leading-relaxed font-bold italic">
-            <strong class="text-slate-700">Catatan Sistem:</strong>
-            Sinkronisasi data antara administrasi manual dan sistem digital dilakukan secara berkala.
-            Hubungi administrator jika terdapat diskrepansi data.
-          </p>
+        <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100 animate-fadeIn">
+          <div class="flex gap-3">
+            <i class="fa-solid fa-circle-info text-blue-400 flex-shrink-0 mt-0.5"></i>
+            <div class="space-y-2">
+              <p class="text-xs font-black text-blue-700">Informasi Sertifikat Periode 1 & 2</p>
+              <p class="text-[11px] text-blue-600 leading-relaxed font-medium">
+                Sertifikat <strong>Periode 1 dan 2</strong> dapat diakses melalui
+                <strong>lms.umm.ac.id</strong>.
+              </p>
+              <p class="text-[11px] text-blue-600 leading-relaxed font-medium">
+                Jika ada kendala, silakan konfirmasi langsung ke
+                <strong>Kesekretariatan Kantor AIK dan MKWK</strong> —
+                Masjid Lantai 2, UMM Kampus 3.
+              </p>
+            </div>
+          </div>
         </div>
       `;
 
