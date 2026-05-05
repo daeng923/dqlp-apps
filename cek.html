@@ -419,16 +419,17 @@
             })()}
 
             <!-- Info sertifikat berikutnya -->
-            ${hak < (p.label_periode || Object.keys(p.rincian_periode)).length ? (() => {
-              const labelBerikutnya = (p.label_periode || Object.keys(p.rincian_periode))[hak];
-              const sisaKehadiran   = 10 - (p.total % 10);
+            ${(() => {
+              const sisaKehadiran = 10 - (p.total % 10);
+              // Hanya tampilkan jika belum mencapai kelipatan 10 berikutnya
+              if (sisaKehadiran === 10) return ''; // pas kelipatan, tidak perlu info
               return `
               <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-center">
                 <i class="fa-solid fa-arrow-trend-up text-blue-400 mb-1"></i>
-                <p class="text-xs font-black text-blue-700">Menuju Sertifikat: ${labelBerikutnya}</p>
+                <p class="text-xs font-black text-blue-700">Sertifikat Berikutnya</p>
                 <p class="text-[10px] text-blue-500 mt-0.5">Butuh <strong>${sisaKehadiran}</strong> kehadiran lagi</p>
               </div>`;
-            })() : ''}
+            })()}
 
           </div>
         </div>
