@@ -63,13 +63,12 @@
   </div>
 
   <!-- FLOATING TOMBOL WA KONSULTASI -->
-  <a href="https://wa.me/6281355662489?text=Halo%2C%20saya%20ingin%20konsultasi%20terkait%20sertifikat%20DQLP%20UMM."
-    target="_blank"
+  <button onclick="bukaWAKonsultasi()"
     class="fixed bottom-6 left-6 z-[90] flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-xl transition-all active:scale-95"
     title="Konsultasi ke Kesekretariatan">
     <i class="fa-brands fa-whatsapp text-xl"></i>
     <span class="text-xs font-black uppercase tracking-wider">Konsultasi</span>
-  </a>
+  </button>
 
   <!-- MODAL VERIFIKASI NIP -->
   <div id="nipModal"
@@ -623,6 +622,32 @@
       showNotif(err.message || 'Gangguan jaringan. Coba lagi.');
       if (btn) { btn.disabled = false; btn.innerText = "Terbitkan Sekarang"; }
     }
+  }
+
+  /* ========== WA KONSULTASI ========== */
+  function bukaWAKonsultasi() {
+    // Ambil data peserta aktif jika ada
+    const namaEl = document.querySelector('#mainResult h2');
+    const nama   = namaEl ? namaEl.innerText.trim() : '';
+    const nip    = kodeAktif || '';
+
+    let pesan;
+    if (nama && nip) {
+      pesan = `Assalamualaikum Wr. Wb.
+
+Perkenalkan, saya *${nama}* dengan NIP *${nip}*.
+
+Saya ingin berkonsultasi terkait sertifikat DQLP UMM.
+
+Mohon bantuannya. Terima kasih.`;
+    } else {
+      pesan = `Assalamualaikum Wr. Wb.
+
+Saya ingin berkonsultasi terkait sertifikat DQLP UMM.
+
+Mohon bantuannya. Terima kasih.`;
+    }
+    window.open('https://wa.me/6281355662489?text=' + encodeURIComponent(pesan), '_blank');
   }
 
   /* ========== KIRIM WA ========== */
