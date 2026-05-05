@@ -330,17 +330,26 @@
               // Urutkan sesuai urutan label_periode asli
               // Hanya tampilkan periode yang:
               // 1. Sudah terbit (ada di LOG_SERTIFIKAT) — selalu tampil
-              // 2. Berhak dari akumulasi + AKTIF
-              // 3. Izin admin + AKTIF
-              // Sembunyikan periode nonaktif yang belum terbit
+              // 2. Berhak dari akumulasi + periode AKTIF
+              // 3. Izin admin — tampil langsung tanpa cek status periode
+              //    (agar admin tidak perlu aktifkan periode untuk izin khusus)
+              // Fungsi cek izin admin per label periode
+              // izinP1 berlaku untuk periode yang mengandung '1', izinP2 untuk '2'
+              const cekIzinAdmin = l => {
+                if (izinP1 && l.includes('1')) return true;
+                if (izinP2 && l.includes('2')) return true;
+                return false;
+              };
+
               const periodeTampil = labelPeriode.filter(l => {
-                const terbit   = logSert[l];
-                const isAktif  = statusPeriode[l] === 'AKTIF';
-                const isHak    = periodeAkumulasi.has(l);
-                const isIzin   = periodeSet.has(l) && !isHak; // izin khusus admin
-                if (terbit)  return true;  // sudah terbit — selalu tampil
-                if (!isAktif) return false; // nonaktif + belum terbit — sembunyikan
-                return isHak || isIzin;    // aktif + berhak atau izin
+                const terbit  = logSert[l];
+                const isAktif = statusPeriode[l] === 'AKTIF';
+                const isHak   = periodeAkumulasi.has(l);
+                const isIzin  = cekIzinAdmin(l); // izin admin langsung dari izinP1/izinP2
+                if (terbit)   return true;  // sudah terbit — selalu tampil
+                if (isIzin)   return true;  // izin admin — tampil tanpa cek status periode
+                if (!isAktif) return false; // nonaktif — sembunyikan meski berhak akumulasi
+                return isHak;               // aktif + berhak dari akumulasi
               });
 
               if (periodeTampil.length === 0) {
@@ -356,7 +365,7 @@
                 const noSert       = idx + 1;
                 const kehadiran    = p.rincian_periode[labelSert] || 0;
                 const isAktif      = statusPeriode[labelSert] === 'AKTIF';
-                const isIzinKhusus = !periodeAkumulasi.has(labelSert);
+                const isIzinKhusus = cekIzinAdmin(labelSert);
 
                 let tombol = '';
                 if (terbit) {
@@ -364,10 +373,17 @@
                     class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl text-xs font-black flex items-center justify-center gap-2 uppercase tracking-wider transition-all">
                     <i class="fa-brands fa-whatsapp text-green-400"></i> Kirim ke WhatsApp
                   </button>`;
-                } else {
+                } else if (isAktif || isIzinKhusus) {
+                  // Aktif normal ATAU izin khusus admin — tombol generate aktif
                   tombol = `<button id="btn-${labelSert}" onclick="generate('${labelSert}','${p.kode}')"
                     class="w-full border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
                     Terbitkan Sekarang
+                  </button>`;
+                } else {
+                  // Fallback disabled (seharusnya tidak pernah tampil karena sudah difilter)
+                  tombol = `<button disabled
+                    class="w-full border-2 border-slate-200 text-slate-300 bg-slate-50 py-3 rounded-xl text-xs font-black uppercase tracking-wider cursor-not-allowed">
+                    Periode Tidak Aktif
                   </button>`;
                 }
 
