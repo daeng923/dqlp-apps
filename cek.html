@@ -320,9 +320,18 @@
               const labelPeriode     = p.label_periode || Object.keys(p.rincian_periode);
               const periodeAkumulasi = new Set(labelPeriode.slice(0, hak));
 
+              // Tambahkan periode AKTIF jika peserta masih punya hak yang belum terbit
+              // Contoh: total 20x → hak 2, tapi P1 & P2 nonaktif → P3 aktif harus muncul
+              const sudahTerbit = Object.keys(logSert).length;
+              if (hak > sudahTerbit) {
+                labelPeriode.forEach(l => {
+                  if (statusPeriode[l] === 'AKTIF') periodeAkumulasi.add(l);
+                });
+              }
+
               // Bangun set periode yang tampil:
-              // 1. Dari akumulasi kehadiran
-              // 2. Dari izin khusus admin (izinP1 = label yang mengandung "1", izinP2 = mengandung "2")
+              // 1. Dari akumulasi kehadiran + periode aktif
+              // 2. Dari izin khusus admin
               const periodeSet = new Set(periodeAkumulasi);
               if (izinP1) labelPeriode.filter(l => l.includes('1')).forEach(l => periodeSet.add(l));
               if (izinP2) labelPeriode.filter(l => l.includes('2')).forEach(l => periodeSet.add(l));
