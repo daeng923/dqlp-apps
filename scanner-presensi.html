@@ -53,10 +53,19 @@
         autocomplete="off" autofocus
         onkeydown="if(event.key==='Enter') prosesScan()">
       <button onclick="prosesScan()" id="btnScan"
-        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-2xl font-bold text-sm transition-all active:scale-95 flex-shrink-0">
-        <i class="fa-solid fa-check text-lg"></i>
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-2xl font-bold text-sm transition-all active:scale-95 flex-shrink-0 min-w-[52px] flex items-center justify-center">
+        <i id="btnScanIcon" class="fa-solid fa-check text-lg"></i>
       </button>
     </div>
+
+    <!-- Loading bar -->
+    <div id="loadingBar" class="hidden mt-3">
+      <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2.5">
+        <div class="loader flex-shrink-0" style="width:18px;height:18px;border-width:2px;border-top-color:#059669;border-color:#d1fae5"></div>
+        <p class="text-xs font-bold text-emerald-700 animate-pulse">Memproses presensi...</p>
+      </div>
+    </div>
+
     <p class="text-[10px] text-slate-400 font-bold mt-2">
       <i class="fa-solid fa-info-circle mr-1"></i>
       Scanner otomatis kirim setelah scan. Ketik manual lalu tekan Enter.
@@ -177,8 +186,11 @@
     }
 
     isProses = true;
-    document.getElementById('btnScan').disabled = true;
+    document.getElementById('btnScan').disabled  = true;
     document.getElementById('nipInput').disabled = true;
+    document.getElementById('nipInput').classList.replace('border-slate-200', 'border-emerald-300');
+    document.getElementById('btnScanIcon').className = 'fa-solid fa-spinner fa-spin text-lg';
+    document.getElementById('loadingBar').classList.remove('hidden');
 
     try {
       const params = new URLSearchParams({
@@ -199,8 +211,11 @@
       tampilHasil({ status: 'error', pesan: err.message });
     } finally {
       isProses = false;
-      document.getElementById('btnScan').disabled = false;
+      document.getElementById('btnScan').disabled  = false;
       document.getElementById('nipInput').disabled = false;
+      document.getElementById('nipInput').classList.replace('border-emerald-300', 'border-slate-200');
+      document.getElementById('btnScanIcon').className = 'fa-solid fa-check text-lg';
+      document.getElementById('loadingBar').classList.add('hidden');
       document.getElementById('nipInput').value = '';
       document.getElementById('nipInput').focus();
     }
