@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Daftar Hadir DQLP Periode 4</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Style untuk pengaturan halaman Print secara Dinamis -->
+  <style id="dynamicPageStyle">
+    @page { size: 13.00in 8.27in; margin: 4mm 10mm; }
+  </style>
+
   <style>
     /* ===== SCREEN STYLES ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +33,7 @@
       flex-wrap: wrap;
     }
     #kontrolPanel h1 { font-size: 14px; font-weight: 800; flex: 1; }
-    #kontrolPanel input, #kontrolPanel select {
+    #kontrolPanel select {
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.2);
       color: white;
@@ -37,8 +43,11 @@
       font-family: inherit;
       outline: none;
     }
-    #kontrolPanel input::placeholder { color: rgba(255,255,255,0.4); }
-    #kontrolPanel input[type="date"] { color-scheme: dark; }
+    /* Fix warna teks pada dropdown list agar terlihat */
+    #kontrolPanel select option {
+      color: #1e293b;
+      background: #ffffff;
+    }
     .btn-kontrol {
       background: #059669;
       color: white;
@@ -54,6 +63,33 @@
     .btn-kontrol:hover { background: #047857; }
     .btn-kontrol.secondary { background: #334155; }
     .btn-kontrol.secondary:hover { background: #475569; }
+
+    /* Tab Group */
+    .tab-group {
+      display: flex;
+      background: rgba(0,0,0,0.2);
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+      margin-right: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: 0.2s;
+    }
+    .tab-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+    .tab-btn.active {
+      background: #059669;
+      color: white;
+    }
 
     /* Loading */
     #loadingState {
@@ -81,18 +117,6 @@
       flex-wrap: wrap;
       align-items: center;
     }
-    .filter-btn {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      padding: 5px 14px;
-      border-radius: 99px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      color: #64748b;
-    }
-    .filter-btn.active { background: #059669; color: white; border-color: #059669; }
 
     /* Preview area */
     #previewArea { padding: 24px; }
@@ -106,17 +130,27 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       page-break-after: always;
     }
+    .dh-main-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #0f172a;
+      padding: 18px 20px 8px;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
     .dh-card-header {
       background: #064e3b;
       color: white;
-      padding: 16px 20px;
+      padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 16px;
     }
-    .dh-card-header h2 { font-size: 16px; font-weight: 800; }
-    .dh-card-header .meta { font-size: 11px; color: #a7f3d0; margin-top: 4px; }
+    .dh-card-header h2 { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
+    .dh-card-header .meta { font-size: 11px; color: #a7f3d0; margin-top: 2px; }
     .dh-card-header .badge {
       background: rgba(255,255,255,0.15);
       padding: 4px 10px;
@@ -126,17 +160,124 @@
       white-space: nowrap;
     }
 
-    /* ===== PRINT STYLES ===== */
-    @page {
-      size: F4 landscape;
-      margin: 8mm 10mm;
+    /* ===== COVER STYLES (PORTRAIT & ELEGANT) ===== */
+    .cover-card {
+      background: white;
+      width: 210mm; /* Ukuran rill Folio Portrait di Layar */
+      min-height: 330mm;
+      margin: 0 auto 24px auto;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      page-break-after: always;
+      position: relative;
+      padding: 14px;
+      border: 1px solid #cbd5e1;
     }
+    .cover-card:last-child {
+      page-break-after: avoid;
+    }
+    .cover-inner {
+      border: 4px solid #064e3b; /* Bingkai Hijau Gelap UMM */
+      width: 100%;
+      height: 100%;
+      min-height: calc(330mm - 28px);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 15%, #ffffff 85%, #f8fafc 100%);
+      overflow: hidden;
+    }
+    /* Ornamen Pojok Bingkai */
+    .cover-inner::before, .cover-inner::after {
+      content: "";
+      position: absolute;
+      width: 50px; height: 50px;
+      border: 6px solid #059669;
+      z-index: 2;
+    }
+    .cover-inner::before { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+    .cover-inner::after { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+    /* Watermark Logo */
+    .cover-watermark {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 650px; /* Diperbesar agar watermark logo memanjang terlihat jelas */
+      opacity: 0.04;
+      z-index: 0;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .cover-content {
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      flex: 1;
+    }
+
+    .cover-header { text-align: center; margin-top: 30px; }
+    
+    /* Ukuran logo diperlebar karena logonya memanjang */
+    .cover-logo { width: 400px; max-width: 90%; margin-bottom: 40px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.10)); }
+    
+    .cover-program { font-size: 24pt; font-weight: 800; color: #064e3b; text-transform: uppercase; line-height: 1.3; }
+    .cover-periode { font-size: 14pt; font-weight: 700; color: #64748b; margin-top: 12px; letter-spacing: 4px; }
+
+    .cover-body { margin: auto 0; text-align: center; width: 100%; }
+    .cover-title-badge {
+      display: inline-block;
+      background: #064e3b;
+      color: white;
+      padding: 12px 40px;
+      border-radius: 8px;
+      font-size: 18pt;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      box-shadow: 0 6px 12px rgba(6, 78, 59, 0.2);
+    }
+
+    .cover-details-table {
+      font-size: 16pt;
+      text-align: left;
+      margin: 0 auto;
+      border-collapse: separate;
+      border-spacing: 16px 20px;
+      background: rgba(255,255,255,0.9);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+      width: 90%;
+    }
+    .cover-details-table td:first-child { font-weight: 700; color: #475569; width: 130px; }
+    .cover-details-table td:nth-child(2) { width: 15px; font-weight: 700; color: #cbd5e1; text-align: center; }
+    .cover-details-table td:last-child { font-weight: 800; color: #0f172a; }
+
+    .cover-footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12pt;
+      font-weight: 800;
+      color: #475569;
+      letter-spacing: 1px;
+    }
+
+    /* ===== PRINT STYLES ===== */
     @media print {
       .screen-only, #kontrolPanel, #filterBar { display: none !important; }
       .print-only { display: block !important; }
-      body { background: white; font-size: 8pt; margin: 0; padding: 0; }
-      html, body { width: 330mm; }
+      body { background: white; font-size: 8.5pt; margin: 0; padding: 0; }
+      html, body { width: 100%; height: 100%; }
       #previewArea { padding: 0; margin: 0; }
+      
+      /* Print Daftar Hadir */
       .dh-card {
         border-radius: 0;
         box-shadow: none;
@@ -147,18 +288,44 @@
         border: none;
         break-after: page;
       }
-      .dh-card:last-child {
-        page-break-after: avoid;
-        break-after: avoid;
-      }
+      .dh-card:last-child { page-break-after: avoid; break-after: avoid; }
+      .dh-main-title { font-size: 12pt; padding: 4px 10px 4px; }
       .dh-card-header {
         background: #064e3b !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        padding: 8px 14px;
+        padding: 4px 10px;
       }
       table { border-collapse: collapse; width: 100%; }
-      td, th { padding: 2px 4px !important; }
+      td, th { padding: 2px 3px !important; }
+
+      /* Penyesuaian Cover Saat Print agar tidak menyusut */
+      .cover-card {
+        width: 100%; 
+        height: 99vh; /* Memaksa kartu untuk memanjang hingga hampir full viewport cetak */
+        min-height: unset;
+        margin: 0; 
+        padding: 0;
+        box-shadow: none; 
+        border: none;
+        box-sizing: border-box;
+      }
+      .cover-inner {
+        height: 100%;
+        min-height: unset;
+        border: 4px solid #064e3b !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        box-sizing: border-box;
+      }
+      .cover-title-badge {
+        background: #064e3b !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cover-details-table {
+        box-shadow: none; border: 2px solid #e2e8f0;
+      }
     }
   </style>
 </head>
@@ -166,9 +333,13 @@
 
 <!-- PANEL KONTROL -->
 <div id="kontrolPanel" class="screen-only">
-  <h1>📋 Daftar Hadir DQLP — Periode 4</h1>
+  <h1 style="flex: none; margin-right: 16px;">📋 DQLP Periode 4</h1>
 
-  <input type="date" id="tanggalInput" title="Tanggal pertemuan">
+  <div class="tab-group">
+    <button id="tab-daftar" class="tab-btn active" onclick="setMode('daftar')">📄 Daftar Hadir</button>
+    <button id="tab-cover" class="tab-btn" onclick="setMode('cover')">🏷️ Cover Skema</button>
+  </div>
+
   <select id="filterSkema" onchange="filterDaftar()">
     <option value="">Semua Skema</option>
   </select>
@@ -181,24 +352,35 @@
 
 <!-- KONTEN -->
 <div id="loadingState">
-  <p style="color:#94a3b8;font-size:13px;font-weight:700">Masukkan token admin dan klik Muat Data</p>
+  <p style="color:#94a3b8;font-size:13px;font-weight:700">Pastikan API Google Script siap, dan klik Muat Data</p>
 </div>
 
 <div id="previewArea"></div>
 
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbycdNJPtsdZi720r9c0isLU_yC4MQ5NGMAYwJoN-Q8lWnS6MK_XK3358AOczKz6pcH6ug/exec";
+  let allData = [];
+  let currentMode = 'daftar'; // 'daftar' atau 'cover'
 
-  let allData  = [];
-  let tanggal  = '';
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab-' + mode).classList.add('active');
+    
+    // Secara dinamis mengubah ukuran kertas @page untuk dialog Print Browser
+    const pageStyle = document.getElementById('dynamicPageStyle');
+    if (mode === 'cover') {
+      // Portrait Folio
+      pageStyle.innerHTML = '@page { size: 8.27in 13.00in; margin: 10mm; }';
+    } else {
+      // Landscape Folio
+      pageStyle.innerHTML = '@page { size: 13.00in 8.27in; margin: 4mm 10mm; }';
+    }
 
-  // Set tanggal default hari ini
-  const today = new Date();
-  document.getElementById('tanggalInput').value = today.toISOString().split('T')[0];
+    filterDaftar();
+  }
 
   async function loadData() {
-    tanggal = document.getElementById('tanggalInput').value;
-
     document.getElementById('loadingState').innerHTML = `
       <div class="spinner"></div>
       <p style="color:#64748b;font-size:13px;font-weight:700;font-family:inherit">Memuat data jadwal dan peserta...</p>`;
@@ -220,7 +402,6 @@
       allData = j.jadwal;
       document.getElementById('loadingState').style.display = 'none';
 
-      // Isi filter dropdown
       const sel = document.getElementById('filterSkema');
       sel.innerHTML = '<option value="">Semua Skema</option>';
       allData.forEach(d => {
@@ -240,16 +421,8 @@
     renderDaftar(val ? allData.filter(d => d.skemaBaru === val) : allData);
   }
 
-  function formatTanggal(iso) {
-    if (!iso) return '___________________';
-    const d = new Date(iso + 'T00:00:00');
-    return d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  }
-
   function renderDaftar(data) {
-    tanggal = document.getElementById('tanggalInput').value;
-    const tglStr = formatTanggal(tanggal);
-    const area   = document.getElementById('previewArea');
+    const area = document.getElementById('previewArea');
 
     if (data.length === 0) {
       area.innerHTML = `<div style="text-align:center;padding:60px;color:#94a3b8;font-weight:700">Tidak ada data untuk ditampilkan.</div>`;
@@ -257,75 +430,126 @@
     }
 
     area.innerHTML = data.map((d, di) => {
+      // ===== JIKA MODE COVER =====
+      if (currentMode === 'cover') {
+        return `
+        <div class="cover-card">
+          <div class="cover-inner">
+            <!-- Watermark Logo UMM Memanjang -->
+            <img src="https://umm.ac.id/wp-content/uploads/2025/01/Logo-UMM-Text-Universitas-Color-1-2048x438.png" class="cover-watermark" alt="">
+            
+            <div class="cover-content">
+              <div class="cover-header">
+                <!-- Logo UMM Utama Resmi (Memanjang) -->
+                <img src="https://umm.ac.id/wp-content/uploads/2025/01/Logo-UMM-Text-Universitas-Color-1-2048x438.png" class="cover-logo" alt="Logo UMM">
+                <div class="cover-program">Development of Quranic<br>Literacy Program (DQLP)</div>
+                <div class="cover-periode">PERIODE 4</div>
+              </div>
+              
+              <div class="cover-body">
+                <div class="cover-title-badge">PRESENSI PESERTA</div>
+                
+                <table class="cover-details-table">
+                  <tr>
+                    <td>Skema</td><td>:</td>
+                    <td style="font-size:17pt; color:#064e3b; text-transform:uppercase;">${d.namaSkema || d.skemaBaru}</td>
+                  </tr>
+                  <tr>
+                    <td>Instruktur</td><td>:</td>
+                    <td>${d.instruktur || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td>Ruang</td><td>:</td>
+                    <td>${d.ruang || '—'}</td>
+                  </tr>
+                  <tr>
+                    <td>Sesi / Jam</td><td>:</td>
+                    <td>${d.jam || '—'}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div class="cover-footer">
+                UNIVERSITAS MUHAMMADIYAH MALANG
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      // ===== JIKA MODE DAFTAR HADIR =====
       const peserta = d.peserta;
-      // Bagi peserta per halaman jika > 30 (maks baris per folio landscape)
       const maxPerHal = 30;
-      const halaman   = [];
+      const halaman = [];
       for (let i = 0; i < Math.max(peserta.length, 1); i += maxPerHal) {
         halaman.push(peserta.slice(i, i + maxPerHal));
       }
 
       return halaman.map((grup, hi) => `
         <div class="dh-card">
-          <!-- Header -->
+          <h1 class="dh-main-title">Daftar Nama Peserta DQLP UMM</h1>
+          <div style="text-align:center; font-size:9pt; font-weight:700; margin-top:-4px; margin-bottom:6px; color:#1e293b;">
+            Periode 4 &nbsp;&nbsp;|&nbsp;&nbsp; Keterangan: ✓ = Hadir, I = Izin, A = Tidak Hadir
+          </div>
+
           <div class="dh-card-header">
             <div>
               <h2>${d.namaSkema || d.skemaBaru}</h2>
               <div class="meta">
                 <span>👤 Instruktur: ${d.instruktur || '—'}</span> &nbsp;|&nbsp;
                 <span>🕐 ${d.jam || '—'}</span> &nbsp;|&nbsp;
-                <span>📍 ${d.ruang || '—'}</span> &nbsp;|&nbsp;
-                <span>📅 ${tglStr}</span>
+                <span>📍 ${d.ruang || '—'}</span>
               </div>
             </div>
             <div class="badge">${peserta.length} Peserta${halaman.length > 1 ? ` · Hal. ${hi+1}/${halaman.length}` : ''}</div>
           </div>
 
-          <!-- Tabel daftar hadir -->
-          <table style="width:100%;border-collapse:collapse;font-size:10pt;">
+          <table style="width:100%;border-collapse:collapse;font-size:9pt;">
             <thead>
               <tr style="background:#f8fafc;">
-                <th style="border:1px solid #e2e8f0;padding:3px 6px;text-align:center;width:24px;font-size:8pt;color:#64748b">No</th>
-                <th style="border:1px solid #e2e8f0;padding:3px 6px;text-align:left;font-size:8pt;color:#64748b">Nama</th>
-                <th style="border:1px solid #e2e8f0;padding:3px 6px;text-align:center;width:70px;font-size:8pt;color:#64748b">NIP</th>
-                ${Array.from({length:14}, (_,i) => `<th style="border:1px solid #e2e8f0;padding:3px 3px;text-align:center;width:28px;font-size:8pt;color:#64748b">${i+1}</th>`).join('')}
+                <th style="border:1px solid #1e293b;padding:3px;text-align:center;width:30px;font-size:8.5pt;color:#1e293b;vertical-align:middle;">No</th>
+                <th style="border:1px solid #1e293b;padding:3px;text-align:left;font-size:8.5pt;color:#1e293b;vertical-align:middle;">Nama</th>
+                <th style="border:1px solid #1e293b;padding:3px;text-align:center;width:75px;font-size:8.5pt;color:#1e293b;vertical-align:middle;">NIP</th>
+                ${Array.from({length:14}, (_,i) => `
+                  <th style="border:1px solid #1e293b;padding:0;text-align:center;width:40px;font-size:8.5pt;color:#1e293b;vertical-align:top">
+                    <div style="background:#e2e8f0;border-bottom:1px solid #1e293b;padding:2px 0;font-weight:700;color:#0f172a;">P-${i+1}</div>
+                    <div style="height:14px;text-align:left;padding:2px 3px;font-size:6.5pt;color:#475569;font-weight:normal;">Tgl:</div>
+                  </th>
+                `).join('')}
+                <th style="border:1px solid #1e293b;padding:3px;text-align:center;width:45px;font-size:8.5pt;color:#1e293b;vertical-align:middle;background:#f1f5f9;">Total</th>
               </tr>
             </thead>
+            
             <tbody>
               ${grup.map((p, pi) => `
                 <tr style="${pi % 2 === 0 ? '' : 'background:#f8fafc'}">
-                  <td style="border:1px solid #e2e8f0;padding:2px 6px;text-align:center;font-size:8pt;color:#64748b">${(hi * maxPerHal) + pi + 1}</td>
-                  <td style="border:1px solid #e2e8f0;padding:2px 6px;font-size:8pt;font-weight:600">${p.nama}</td>
-                  <td style="border:1px solid #e2e8f0;padding:2px 6px;text-align:center;font-size:7pt;color:#94a3b8;font-family:monospace">${p.nip}</td>
-                  ${Array.from({length:14}, () => '<td style="border:1px solid #e2e8f0;padding:2px 3px;text-align:center;min-width:28px;height:22px;"></td>').join('')}
+                  <td style="border:1px solid #1e293b;padding:2px 3px;text-align:center;font-size:9pt;color:#334155">${(hi * maxPerHal) + pi + 1}</td>
+                  <td style="border:1px solid #1e293b;padding:2px 3px;font-size:9pt;font-weight:600;color:#0f172a">${p.nama}</td>
+                  <td style="border:1px solid #1e293b;padding:2px 3px;text-align:center;font-size:7.5pt;color:#475569;font-family:monospace">${p.nip}</td>
+                  ${Array.from({length:14}, () => '<td style="border:1px solid #1e293b;padding:2px;text-align:center;min-width:40px;height:19px;"></td>').join('')}
+                  <td style="border:1px solid #1e293b;padding:2px 3px;text-align:center;"></td>
                 </tr>`).join('')}
-              <!-- Baris kosong jika peserta < 10 -->
+              
               ${grup.length < 10 ? Array.from({length: 10 - grup.length}, (_, i) => `
                 <tr style="${(grup.length + i) % 2 === 0 ? '' : 'background:#f8fafc'}">
-                  <td style="border:1px solid #e2e8f0;padding:2px 6px;text-align:center;font-size:8pt;color:#e2e8f0">${(hi * maxPerHal) + grup.length + i + 1}</td>
-                  <td style="border:1px solid #e2e8f0;padding:2px 6px;height:22px;"></td>
-                  <td style="border:1px solid #e2e8f0;padding:2px 6px;"></td>
-                  ${Array.from({length:14}, () => '<td style="border:1px solid #e2e8f0;padding:2px 3px;"></td>').join('')}
+                  <td style="border:1px solid #1e293b;padding:2px 3px;text-align:center;font-size:9pt;color:#94a3b8">${(hi * maxPerHal) + grup.length + i + 1}</td>
+                  <td style="border:1px solid #1e293b;padding:2px 3px;height:19px;"></td>
+                  <td style="border:1px solid #1e293b;padding:2px 3px;"></td>
+                  ${Array.from({length:14}, () => '<td style="border:1px solid #1e293b;padding:2px;"></td>').join('')}
+                  <td style="border:1px solid #1e293b;padding:2px 3px;"></td>
                 </tr>`).join('') : ''}
+                
+              ${hi === halaman.length - 1 ? `
+              <tr style="background:#f8fafc;">
+                <td colspan="3" style="border:1px solid #1e293b;padding:4px 8px;text-align:right;font-size:9pt;font-weight:700;color:#0f172a;">Paraf Instruktur:</td>
+                ${Array.from({length:14}, () => '<td style="border:1px solid #1e293b;padding:2px;height:22px;"></td>').join('')}
+                <td style="border:1px solid #1e293b;background:#e2e8f0;"></td>
+              </tr>` : ''}
             </tbody>
           </table>
-
-          <!-- Footer -->
-          <div style="display:flex;justify-content:space-between;padding:10px 16px;font-size:9pt;color:#64748b;border-top:1px solid #e2e8f0;background:#f8fafc;">
-            <span>DQLP — Universitas Muhammadiyah Malang &nbsp;|&nbsp; Periode 4</span>
-            <span>Keterangan kolom 1–14: Nomor pertemuan &nbsp;|&nbsp; ✓ = Hadir, I = Izin, A = Tidak Hadir</span>
-          </div>
         </div>`).join('');
     }).join('');
-
-    // Update tanggal jika berubah
-    document.getElementById('tanggalInput').addEventListener('change', () => renderDaftar(data));
   }
-
-  // Enter di input tanggal untuk reload
-  document.getElementById('tanggalInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') loadData();
-  });
 </script>
 </body>
 </html>
