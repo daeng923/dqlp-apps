@@ -153,7 +153,7 @@
 <!-- PANEL KONTROL -->
 <div id="kontrolPanel" class="screen-only">
   <h1>📋 Daftar Hadir DQLP — Periode 4</h1>
-  <input type="password" id="tokenInput" placeholder="Token admin..." style="width:160px">
+
   <input type="date" id="tanggalInput" title="Tanggal pertemuan">
   <select id="filterSkema" onchange="filterDaftar()">
     <option value="">Semua Skema</option>
@@ -183,9 +183,6 @@
   document.getElementById('tanggalInput').value = today.toISOString().split('T')[0];
 
   async function loadData() {
-    const token = document.getElementById('tokenInput').value.trim();
-    if (!token) return alert('Masukkan token admin terlebih dahulu.');
-
     tanggal = document.getElementById('tanggalInput').value;
 
     document.getElementById('loadingState').innerHTML = `
@@ -196,7 +193,7 @@
     document.getElementById('filterBar').style.display = 'none';
 
     try {
-      const params = new URLSearchParams({ action: 'daftar_hadir', token });
+      const params = new URLSearchParams({ action: 'daftar_hadir' });
       const r = await fetch(`${API_URL}?${params}`);
       const j = await r.json();
 
