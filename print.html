@@ -134,18 +134,31 @@
     @media print {
       .screen-only, #kontrolPanel, #filterBar { display: none !important; }
       .print-only { display: block !important; }
-      body { background: white; font-size: 9pt; }
+      body { background: white; font-size: 8pt; margin: 0; padding: 0; }
       html, body { width: 330mm; }
-      #previewArea { padding: 0; }
+      #previewArea { padding: 0; margin: 0; }
       .dh-card {
         border-radius: 0;
         box-shadow: none;
-        margin-bottom: 0;
+        margin: 0;
+        padding: 0;
+        page-break-inside: avoid;
         page-break-after: always;
         border: none;
+        break-after: page;
       }
-      .dh-card:last-child { page-break-after: avoid; }
-      .dh-card-header { background: #064e3b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .dh-card:last-child {
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+      .dh-card-header {
+        background: #064e3b !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        padding: 8px 14px;
+      }
+      table { border-collapse: collapse; width: 100%; }
+      td, th { padding: 2px 4px !important; }
     }
   </style>
 </head>
