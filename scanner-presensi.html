@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Scanner Presensi DQLP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; }
+    .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .loader { border:4px solid #e2e8f0; border-top:4px solid #059669; border-radius:50%; width:36px; height:36px; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes flashGreen { 0%,100%{background:#f0fdf4} 50%{background:#bbf7d0} }
+    @keyframes flashRed   { 0%,100%{background:#fff5f5} 50%{background:#fecaca} }
+    .flash-green { animation: flashGreen 0.6s ease-out; }
+    .flash-red   { animation: flashRed   0.6s ease-out; }
+    .log-item { animation: fadeIn 0.3s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+<div class="max-w-xl mx-auto space-y-4">
+
+  <!-- HEADER -->
+  <div class="bg-emerald-600 rounded-2xl p-6 text-white shadow-lg animate-fadeIn">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-black">Scanner Presensi</h1>
+        <p class="text-emerald-100 text-xs font-bold uppercase tracking-widest mt-0.5">DQLP — Universitas Muhammadiyah Malang</p>
+      </div>
+      <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+        <i class="fa-solid fa-barcode text-2xl"></i>
+      </div>
+    </div>
+    <!-- Status periode -->
+    <div id="infoPeriode" class="mt-4 bg-white/10 rounded-xl px-4 py-2 text-xs font-bold text-emerald-100">
+      <i class="fa-solid fa-circle-notch fa-spin mr-2"></i>Memuat info periode...
+    </div>
+  </div>
+
+  <!-- INPUT SCANNER -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 animate-fadeIn">
+    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+      Scan Kartu atau Ketik NIP
+    </label>
+    <div class="flex gap-3">
+      <input type="text" id="nipInput" inputmode="numeric"
+        placeholder="Arahkan scanner atau ketik NIP..."
+        class="flex-1 bg-slate-50 border-2 border-slate-200 focus:border-emerald-500 rounded-2xl px-5 py-4 text-base font-bold outline-none transition-all tracking-wider"
+        autocomplete="off" autofocus
+        onkeydown="if(event.key==='Enter') prosesScan()">
+      <button onclick="prosesScan()" id="btnScan"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-2xl font-bold text-sm transition-all active:scale-95 flex-shrink-0">
+        <i class="fa-solid fa-check text-lg"></i>
+      </button>
+    </div>
+    <p class="text-[10px] text-slate-400 font-bold mt-2">
+      <i class="fa-solid fa-info-circle mr-1"></i>
+      Scanner otomatis kirim setelah scan. Ketik manual lalu tekan Enter.
+    </p>
+  </div>
+
+  <!-- HASIL SCAN TERAKHIR -->
+  <div id="hasilScan" class="hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0">
+        <img id="hasilFoto" src="" class="w-full h-full object-cover"
+          onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=User&background=059669&color=fff&size=56'">
+      </div>
+      <div class="flex-1 min-w-0">
+        <p id="hasilNama" class="text-sm font-black text-slate-800 truncate"></p>
+        <p id="hasilSkema" class="text-xs font-bold text-emerald-600 mt-0.5"></p>
+        <p id="hasilStatus" class="text-[10px] font-bold mt-1"></p>
+      </div>
+      <div id="hasilIcon" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xl"></div>
+    </div>
+  </div>
+
+  <!-- LOG PRESENSI -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fadeIn">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-50">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-emerald-500"></i>
+        <span class="text-sm font-black text-slate-700 uppercase tracking-wider">Log Presensi</span>
+        <span id="logCount" class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-black">0</span>
+      </div>
+      <button onclick="clearLog()"
+        class="text-[10px] text-slate-400 hover:text-red-400 font-bold uppercase transition-all">
+        Hapus Log
+      </button>
+    </div>
+    <div id="logList" class="divide-y divide-slate-50 max-h-80 overflow-y-auto">
+      <div class="p-8 text-center text-slate-300">
+        <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+        <p class="text-xs font-bold">Belum ada presensi</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATATAN -->
+  <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 animate-fadeIn">
+    <div class="flex gap-3">
+      <i class="fa-solid fa-triangle-exclamation text-amber-500 flex-shrink-0 mt-0.5"></i>
+      <p class="text-[11px] text-amber-700 font-medium leading-relaxed">
+        Data presensi via scanner masuk sebagai <strong>HADIR</strong> dan tetap perlu divalidasi pengajar di akhir pertemuan.
+        Halaman ini khusus untuk skema yang diizinkan oleh pengelola DQLP.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbywHhR4PnfywbsPFmEP0wFGMy_8EtBGPPUqEAs7PydtnHxRy9vHeWXK5fsV1HhihYtL/exec";
+
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+
+  let logData    = [];
+  let isProses   = false;
+  let periodeAktif = '';
+
+  /* ========== FETCH ========== */
+  async function fetchWithTimeout(url, ms = 15000, retries = 1) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const ctrl = new AbortController();
+      const id   = setTimeout(() => ctrl.abort(), ms);
+      try {
+        const res = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(id);
+        return res;
+      } catch(err) {
+        clearTimeout(id);
+        if (attempt === retries) {
+          if (err.name === 'AbortError') throw new Error('Timeout. Periksa jaringan.');
+          throw err;
+        }
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    }
+  }
+
+  /* ========== LOAD INFO PERIODE ========== */
+  async function loadInfoPeriode() {
+    try {
+      const r = await fetchWithTimeout(`${API_URL}?action=cek_periode_scanner`);
+      const j = await r.json();
+      const el = document.getElementById('infoPeriode');
+      if (j.status === 'ok') {
+        periodeAktif = j.periode;
+        el.innerHTML = `<i class="fa-solid fa-circle-check mr-2 text-emerald-300"></i>
+          <span>Periode aktif: <strong>${j.periode}</strong> — Kode: <strong>${j.kode}</strong></span>`;
+      } else {
+        el.innerHTML = `<i class="fa-solid fa-circle-xmark mr-2 text-red-300"></i>
+          <span class="text-red-200">Tidak ada periode aktif</span>`;
+      }
+    } catch(err) {
+      document.getElementById('infoPeriode').innerHTML =
+        `<i class="fa-solid fa-wifi mr-2"></i>Gagal memuat info periode`;
+    }
+  }
+
+  /* ========== PROSES SCAN ========== */
+  async function prosesScan() {
+    const nip = document.getElementById('nipInput').value.trim();
+    if (!nip || isProses) return;
+
+    // Cek duplikasi di log lokal session ini
+    if (logData.find(l => l.nip === nip && l.status === 'ok')) {
+      tampilHasil({ status: 'duplikat', nip });
+      document.getElementById('nipInput').value = '';
+      document.getElementById('nipInput').focus();
+      return;
+    }
+
+    isProses = true;
+    document.getElementById('btnScan').disabled = true;
+    document.getElementById('nipInput').disabled = true;
+
+    try {
+      const params = new URLSearchParams({
+        action: 'simpan_hadir_scanner',
+        nip   : nip
+      });
+      const r = await fetchWithTimeout(`${API_URL}?${params}`);
+      const j = await r.json();
+
+      tampilHasil(j);
+
+      if (j.status === 'SUCCESS') {
+        logData.unshift({ nip, nama: j.nama, skema: j.skema, waktu: waktuSekarang(), status: 'ok' });
+        renderLog();
+      }
+
+    } catch(err) {
+      tampilHasil({ status: 'error', pesan: err.message });
+    } finally {
+      isProses = false;
+      document.getElementById('btnScan').disabled = false;
+      document.getElementById('nipInput').disabled = false;
+      document.getElementById('nipInput').value = '';
+      document.getElementById('nipInput').focus();
+    }
+  }
+
+  /* ========== TAMPIL HASIL ========== */
+  function tampilHasil(j) {
+    const box    = document.getElementById('hasilScan');
+    const nama   = document.getElementById('hasilNama');
+    const skema  = document.getElementById('hasilSkema');
+    const status = document.getElementById('hasilStatus');
+    const icon   = document.getElementById('hasilIcon');
+    const foto   = document.getElementById('hasilFoto');
+
+    box.classList.remove('hidden', 'flash-green', 'flash-red');
+
+    if (j.status === 'SUCCESS') {
+      nama.innerText  = j.nama || '-';
+      skema.innerText = j.skema || '-';
+      status.innerHTML = `<span class="text-emerald-600">✓ Presensi berhasil dicatat</span>`;
+      icon.className  = 'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xl bg-emerald-100 text-emerald-600';
+      icon.innerHTML  = '<i class="fa-solid fa-circle-check"></i>';
+      foto.src        = j.foto || `https://ui-avatars.com/api/?name=${encodeURIComponent(j.nama||'')}&background=059669&color=fff&size=56`;
+      void box.offsetWidth;
+      box.classList.add('flash-green');
+    } else if (j.status === 'duplikat') {
+      nama.innerText  = j.nip;
+      skema.innerText = '';
+      status.innerHTML = `<span class="text-amber-600">⚠ Sudah presensi di sesi ini</span>`;
+      icon.className  = 'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xl bg-amber-100 text-amber-500';
+      icon.innerHTML  = '<i class="fa-solid fa-triangle-exclamation"></i>';
+      foto.src        = `https://ui-avatars.com/api/?name=?&background=f59e0b&color=fff&size=56`;
+      void box.offsetWidth;
+      box.classList.add('flash-red');
+    } else {
+      nama.innerText  = j.pesan || j.message || 'Gagal';
+      skema.innerText = '';
+      status.innerHTML = `<span class="text-red-500">✗ ${j.pesan || j.message || 'Terjadi kesalahan'}</span>`;
+      icon.className  = 'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xl bg-red-100 text-red-500';
+      icon.innerHTML  = '<i class="fa-solid fa-circle-xmark"></i>';
+      foto.src        = `https://ui-avatars.com/api/?name=!&background=ef4444&color=fff&size=56`;
+      void box.offsetWidth;
+      box.classList.add('flash-red');
+    }
+  }
+
+  /* ========== RENDER LOG ========== */
+  function renderLog() {
+    const list = document.getElementById('logList');
+    document.getElementById('logCount').innerText = logData.length;
+
+    if (logData.length === 0) {
+      list.innerHTML = `<div class="p-8 text-center text-slate-300">
+        <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+        <p class="text-xs font-bold">Belum ada presensi</p>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = logData.map((l, i) => `
+      <div class="log-item flex items-center justify-between px-5 py-3 hover:bg-slate-50">
+        <div class="flex items-center gap-3">
+          <div class="w-7 h-7 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center text-[10px] font-black flex-shrink-0">
+            ${logData.length - i}
+          </div>
+          <div>
+            <p class="text-sm font-bold text-slate-700">${l.nama}</p>
+            <p class="text-[10px] text-slate-400 font-bold">${l.skema} · ${l.waktu}</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+      </div>`).join('');
+  }
+
+  function clearLog() {
+    if (logData.length === 0) return;
+    if (confirm('Hapus semua log presensi di layar ini?')) {
+      logData = [];
+      renderLog();
+    }
+  }
+
+  function waktuSekarang() {
+    return new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  /* ========== PROTEKSI (skip mobile) ========== */
+  if (!isMobile) {
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.keyCode === 123 ||
+        (e.ctrlKey && e.shiftKey && [73,74,67].includes(e.keyCode)) ||
+        (e.ctrlKey && [85,83,80].includes(e.keyCode))) {
+        e.preventDefault(); return false;
+      }
+    });
+  }
+
+  // Init
+  loadInfoPeriode();
+  document.getElementById('nipInput').focus();
+</script>
+</body>
+</html>
