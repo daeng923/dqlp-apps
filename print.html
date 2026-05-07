@@ -308,8 +308,8 @@
     document.getElementById('tanggalInput').addEventListener('change', () => renderDaftar(data));
   }
 
-  // Enter untuk load
-  document.getElementById('tokenInput').addEventListener('keydown', e => {
+  // Enter di input tanggal untuk reload
+  document.getElementById('tanggalInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') loadData();
   });
 </script>
