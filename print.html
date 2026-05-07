@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daftar Hadir DQLP Periode 4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== SCREEN STYLES ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; }
+
+    .screen-only { display: block; }
+    .print-only  { display: none; }
+
+    /* Panel kontrol */
+    #kontrolPanel {
+      background: #1e293b;
+      color: white;
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    #kontrolPanel h1 { font-size: 14px; font-weight: 800; flex: 1; }
+    #kontrolPanel input, #kontrolPanel select {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+    #kontrolPanel input::placeholder { color: rgba(255,255,255,0.4); }
+    #kontrolPanel input[type="date"] { color-scheme: dark; }
+    .btn-kontrol {
+      background: #059669;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-kontrol:hover { background: #047857; }
+    .btn-kontrol.secondary { background: #334155; }
+    .btn-kontrol.secondary:hover { background: #475569; }
+
+    /* Loading */
+    #loadingState {
+      text-align: center;
+      padding: 60px;
+      color: #64748b;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #e2e8f0;
+      border-top-color: #059669;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Filter skema */
+    #filterBar {
+      padding: 12px 24px;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-btn {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 5px 14px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      color: #64748b;
+    }
+    .filter-btn.active { background: #059669; color: white; border-color: #059669; }
+
+    /* Preview area */
+    #previewArea { padding: 24px; }
+
+    /* ===== DAFTAR HADIR CARD (screen) ===== */
+    .dh-card {
+      background: white;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      page-break-after: always;
+    }
+    .dh-card-header {
+      background: #064e3b;
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .dh-card-header h2 { font-size: 16px; font-weight: 800; }
+    .dh-card-header .meta { font-size: 11px; color: #a7f3d0; margin-top: 4px; }
+    .dh-card-header .badge {
+      background: rgba(255,255,255,0.15);
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* ===== PRINT STYLES ===== */
+    @page {
+      size: folio landscape;
+      margin: 10mm 12mm;
+    }
+    @media print {
+      .screen-only, #kontrolPanel, #filterBar { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white; font-size: 9pt; }
+      #previewArea { padding: 0; }
+      .dh-card {
+        border-radius: 0;
+        box-shadow: none;
+        margin-bottom: 0;
+        page-break-after: always;
+        border: none;
+      }
+      .dh-card:last-child { page-break-after: avoid; }
+      .dh-card-header { background: #064e3b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PANEL KONTROL -->
+<div id="kontrolPanel" class="screen-only">
+  <h1>📋 Daftar Hadir DQLP — Periode 4</h1>
+  <input type="password" id="tokenInput" placeholder="Token admin..." style="width:160px">
+  <input type="date" id="tanggalInput" title="Tanggal pertemuan">
+  <select id="filterSkema" onchange="filterDaftar()">
+    <option value="">Semua Skema</option>
+  </select>
+  <button class="btn-kontrol" onclick="loadData()">🔄 Muat Data</button>
+  <button class="btn-kontrol secondary" onclick="window.print()">🖨️ Cetak Semua</button>
+</div>
+
+<!-- FILTER BAR -->
+<div id="filterBar" class="screen-only" style="display:none!important"></div>
+
+<!-- KONTEN -->
+<div id="loadingState">
+  <p style="color:#94a3b8;font-size:13px;font-weight:700">Masukkan token admin dan klik Muat Data</p>
+</div>
+
+<div id="previewArea"></div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbycdNJPtsdZi720r9c0isLU_yC4MQ5NGMAYwJoN-Q8lWnS6MK_XK3358AOczKz6pcH6ug/exec";
+
+  let allData  = [];
+  let tanggal  = '';
+
+  // Set tanggal default hari ini
+  const today = new Date();
+  document.getElementById('tanggalInput').value = today.toISOString().split('T')[0];
+
+  async function loadData() {
+    const token = document.getElementById('tokenInput').value.trim();
+    if (!token) return alert('Masukkan token admin terlebih dahulu.');
+
+    tanggal = document.getElementById('tanggalInput').value;
+
+    document.getElementById('loadingState').innerHTML = `
+      <div class="spinner"></div>
+      <p style="color:#64748b;font-size:13px;font-weight:700;font-family:inherit">Memuat data jadwal dan peserta...</p>`;
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('previewArea').innerHTML = '';
+    document.getElementById('filterBar').style.display = 'none';
+
+    try {
+      const params = new URLSearchParams({ action: 'daftar_hadir', token });
+      const r = await fetch(`${API_URL}?${params}`);
+      const j = await r.json();
+
+      if (j.status !== 'ok') {
+        document.getElementById('loadingState').innerHTML =
+          `<p style="color:#ef4444;font-weight:700">${j.pesan || 'Gagal memuat data.'}</p>`;
+        return;
+      }
+
+      allData = j.jadwal;
+      document.getElementById('loadingState').style.display = 'none';
+
+      // Isi filter dropdown
+      const sel = document.getElementById('filterSkema');
+      sel.innerHTML = '<option value="">Semua Skema</option>';
+      allData.forEach(d => {
+        sel.innerHTML += `<option value="${d.skemaBaru}">${d.namaSkema || d.skemaBaru}</option>`;
+      });
+
+      renderDaftar(allData);
+
+    } catch(err) {
+      document.getElementById('loadingState').innerHTML =
+        `<p style="color:#ef4444;font-weight:700">Gagal: ${err.message}</p>`;
+    }
+  }
+
+  function filterDaftar() {
+    const val = document.getElementById('filterSkema').value;
+    renderDaftar(val ? allData.filter(d => d.skemaBaru === val) : allData);
+  }
+
+  function formatTanggal(iso) {
+    if (!iso) return '___________________';
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+
+  function renderDaftar(data) {
+    tanggal = document.getElementById('tanggalInput').value;
+    const tglStr = formatTanggal(tanggal);
+    const area   = document.getElementById('previewArea');
+
+    if (data.length === 0) {
+      area.innerHTML = `<div style="text-align:center;padding:60px;color:#94a3b8;font-weight:700">Tidak ada data untuk ditampilkan.</div>`;
+      return;
+    }
+
+    area.innerHTML = data.map((d, di) => {
+      const peserta = d.peserta;
+      // Bagi peserta per halaman jika > 30 (maks baris per folio landscape)
+      const maxPerHal = 30;
+      const halaman   = [];
+      for (let i = 0; i < Math.max(peserta.length, 1); i += maxPerHal) {
+        halaman.push(peserta.slice(i, i + maxPerHal));
+      }
+
+      return halaman.map((grup, hi) => `
+        <div class="dh-card">
+          <!-- Header -->
+          <div class="dh-card-header">
+            <div>
+              <h2>${d.namaSkema || d.skemaBaru}</h2>
+              <div class="meta">
+                <span>👤 Instruktur: ${d.instruktur || '—'}</span> &nbsp;|&nbsp;
+                <span>🕐 ${d.jam || '—'}</span> &nbsp;|&nbsp;
+                <span>📍 ${d.ruang || '—'}</span> &nbsp;|&nbsp;
+                <span>📅 ${tglStr}</span>
+              </div>
+            </div>
+            <div class="badge">${peserta.length} Peserta${halaman.length > 1 ? ` · Hal. ${hi+1}/${halaman.length}` : ''}</div>
+          </div>
+
+          <!-- Tabel daftar hadir -->
+          <table style="width:100%;border-collapse:collapse;font-size:10pt;">
+            <thead>
+              <tr style="background:#f8fafc;">
+                <th style="border:1px solid #e2e8f0;padding:6px 8px;text-align:center;width:28px;font-size:9pt;color:#64748b">No</th>
+                <th style="border:1px solid #e2e8f0;padding:6px 8px;text-align:left;font-size:9pt;color:#64748b">Nama</th>
+                <th style="border:1px solid #e2e8f0;padding:6px 8px;text-align:center;width:80px;font-size:9pt;color:#64748b">NIP</th>
+                ${Array.from({length:14}, (_,i) => `<th style="border:1px solid #e2e8f0;padding:6px 4px;text-align:center;width:32px;font-size:9pt;color:#64748b">${i+1}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${grup.map((p, pi) => `
+                <tr style="${pi % 2 === 0 ? '' : 'background:#f8fafc'}">
+                  <td style="border:1px solid #e2e8f0;padding:5px 8px;text-align:center;font-size:9pt;color:#64748b">${(hi * maxPerHal) + pi + 1}</td>
+                  <td style="border:1px solid #e2e8f0;padding:5px 8px;font-size:9pt;font-weight:600">${p.nama}</td>
+                  <td style="border:1px solid #e2e8f0;padding:5px 8px;text-align:center;font-size:8pt;color:#94a3b8;font-family:monospace">${p.nip}</td>
+                  ${Array.from({length:14}, () => '<td style="border:1px solid #e2e8f0;padding:5px 4px;text-align:center;min-width:32px;height:28px;"></td>').join('')}
+                </tr>`).join('')}
+              <!-- Baris kosong jika peserta < maxPerHal -->
+              ${grup.length < 10 ? Array.from({length: 10 - grup.length}, (_, i) => `
+                <tr style="${(grup.length + i) % 2 === 0 ? '' : 'background:#f8fafc'}">
+                  <td style="border:1px solid #e2e8f0;padding:5px 8px;text-align:center;font-size:9pt;color:#e2e8f0">${(hi * maxPerHal) + grup.length + i + 1}</td>
+                  <td style="border:1px solid #e2e8f0;padding:5px 8px;height:28px;"></td>
+                  <td style="border:1px solid #e2e8f0;padding:5px 8px;"></td>
+                  ${Array.from({length:14}, () => '<td style="border:1px solid #e2e8f0;padding:5px 4px;"></td>').join('')}
+                </tr>`).join('') : ''}
+            </tbody>
+          </table>
+
+          <!-- Footer -->
+          <div style="display:flex;justify-content:space-between;padding:10px 16px;font-size:9pt;color:#64748b;border-top:1px solid #e2e8f0;background:#f8fafc;">
+            <span>DQLP — Universitas Muhammadiyah Malang &nbsp;|&nbsp; Periode 4</span>
+            <span>Keterangan kolom 1–14: Nomor pertemuan &nbsp;|&nbsp; ✓ = Hadir, I = Izin, A = Tidak Hadir</span>
+          </div>
+        </div>`).join('');
+    }).join('');
+
+    // Update tanggal jika berubah
+    document.getElementById('tanggalInput').addEventListener('change', () => renderDaftar(data));
+  }
+
+  // Enter untuk load
+  document.getElementById('tokenInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadData();
+  });
+</script>
+</body>
+</html>
