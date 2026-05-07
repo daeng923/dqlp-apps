@@ -128,13 +128,14 @@
 
     /* ===== PRINT STYLES ===== */
     @page {
-      size: folio landscape;
-      margin: 10mm 12mm;
+      size: F4 landscape;
+      margin: 8mm 10mm;
     }
     @media print {
       .screen-only, #kontrolPanel, #filterBar { display: none !important; }
       .print-only { display: block !important; }
       body { background: white; font-size: 9pt; }
+      html, body { width: 330mm; }
       #previewArea { padding: 0; }
       .dh-card {
         border-radius: 0;
