@@ -18,13 +18,14 @@
     .flash-green { animation: flashGreen 0.6s ease-out; }
     .flash-red   { animation: flashRed   0.6s ease-out; }
     .log-item { animation: fadeIn 0.3s ease-out forwards; }
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
 <body class="min-h-screen p-4 md:p-6">
 
 <div class="max-w-xl mx-auto space-y-4">
 
-  <!-- HEADER -->
   <div class="bg-emerald-600 rounded-2xl p-6 text-white shadow-lg animate-fadeIn">
     <div class="flex items-center justify-between">
       <div>
@@ -41,7 +42,6 @@
     </div>
   </div>
 
-  <!-- INPUT SCANNER -->
   <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 animate-fadeIn">
     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
       Scan Kartu atau Ketik NIP
@@ -65,14 +65,32 @@
         <p class="text-xs font-bold text-emerald-700 animate-pulse">Memproses presensi...</p>
       </div>
     </div>
-
-    <p class="text-[10px] text-slate-400 font-bold mt-2">
-      <i class="fa-solid fa-info-circle mr-1"></i>
-      Scanner otomatis kirim setelah scan. Ketik manual lalu tekan Enter.
-    </p>
   </div>
 
-  <!-- HASIL SCAN TERAKHIR -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 animate-fadeIn">
+    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">
+      Atau Cari Nama Peserta (Manual)
+    </label>
+    <div class="relative">
+      <div class="flex gap-3">
+        <input type="text" id="namaSearchInput"
+          placeholder="Ketik minimal 3 huruf nama..."
+          class="flex-1 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 rounded-2xl px-5 py-3 text-sm font-bold outline-none transition-all"
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter') cariNama()">
+        <button onclick="cariNama()" id="btnCariNama"
+          class="bg-blue-500 hover:bg-blue-600 text-white px-5 rounded-2xl font-bold text-sm transition-all active:scale-95 flex-shrink-0">
+          <i id="btnCariIcon" class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </div>
+      
+      <!-- List Hasil Pencarian -->
+      <div id="listSearch" class="hidden absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-xl z-50 divide-y divide-slate-50 max-h-60 overflow-y-auto custom-scroll">
+        <!-- Hasil pencarian akan muncul di sini -->
+      </div>
+    </div>
+  </div>
+
   <div id="hasilScan" class="hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn">
     <div class="flex items-center gap-4">
       <div class="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0">
@@ -88,7 +106,6 @@
     </div>
   </div>
 
-  <!-- LOG PRESENSI -->
   <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fadeIn">
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-50">
       <div class="flex items-center gap-2">
@@ -101,7 +118,7 @@
         Hapus Log
       </button>
     </div>
-    <div id="logList" class="divide-y divide-slate-50 max-h-80 overflow-y-auto">
+    <div id="logList" class="divide-y divide-slate-50 max-h-80 overflow-y-auto custom-scroll">
       <div class="p-8 text-center text-slate-300">
         <i class="fa-solid fa-inbox text-3xl mb-2"></i>
         <p class="text-xs font-bold">Belum ada presensi</p>
@@ -109,13 +126,12 @@
     </div>
   </div>
 
-  <!-- CATATAN -->
   <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 animate-fadeIn">
     <div class="flex gap-3">
       <i class="fa-solid fa-triangle-exclamation text-amber-500 flex-shrink-0 mt-0.5"></i>
       <p class="text-[11px] text-amber-700 font-medium leading-relaxed">
-        Data presensi via scanner masuk sebagai <strong>HADIR</strong> dan tetap perlu divalidasi pengajar di akhir pertemuan.
-        Halaman ini khusus untuk skema yang diizinkan oleh pengelola DQLP.
+        Data presensi via scanner masuk sebagai <strong>HADIR</strong>. 
+        Fitur pencarian nama memudahkan input jika kartu tidak terbawa.
       </p>
     </div>
   </div>
@@ -124,15 +140,16 @@
 
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbxHfanh6sokHolfHWYIQoQLv2gSy2l7126JaVd6rTOEfrn8r-AoIB-9sHjGe3Qq8XME/exec";
+  const PORTAL_API_URL = "https://script.google.com/macros/s/AKfycbxL-61jc2cQSIm-InluysdrEqyd1kE-5HRoPkFl3tYqpFxLJfi8iiRnlKO-PdsQOdNk/exec";
 
   const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
     || (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
 
-  let logData    = [];
-  let isProses   = false;
+  let logData     = [];
+  let isProses    = false;
   let periodeAktif = '';
 
-  /* ========== FETCH ========== */
+  /* ========== FETCH WITH RETRY ========== */
   async function fetchWithTimeout(url, ms = 15000, retries = 1) {
     for (let attempt = 0; attempt <= retries; attempt++) {
       const ctrl = new AbortController();
@@ -143,10 +160,7 @@
         return res;
       } catch(err) {
         clearTimeout(id);
-        if (attempt === retries) {
-          if (err.name === 'AbortError') throw new Error('Timeout. Periksa jaringan.');
-          throw err;
-        }
+        if (attempt === retries) throw err;
         await new Promise(r => setTimeout(r, 1500));
       }
     }
@@ -172,25 +186,23 @@
     }
   }
 
-  /* ========== PROSES SCAN ========== */
-  async function prosesScan() {
-    const nip = document.getElementById('nipInput').value.trim();
+  /* ========== PROSES SCAN (NIP) ========== */
+  async function prosesScan(nipOverride = null) {
+    const nipInput = document.getElementById('nipInput');
+    const nip = nipOverride || nipInput.value.trim();
+    
     if (!nip || isProses) return;
 
-    // Cek duplikasi di log lokal session ini
+    // Cek duplikasi lokal
     if (logData.find(l => l.nip === nip && l.status === 'ok')) {
       tampilHasil({ status: 'duplikat', nip });
-      document.getElementById('nipInput').value = '';
-      document.getElementById('nipInput').focus();
+      nipInput.value = '';
+      nipInput.focus();
       return;
     }
 
     isProses = true;
-    document.getElementById('btnScan').disabled  = true;
-    document.getElementById('nipInput').disabled = true;
-    document.getElementById('nipInput').classList.replace('border-slate-200', 'border-emerald-300');
-    document.getElementById('btnScanIcon').className = 'fa-solid fa-spinner fa-spin text-lg';
-    document.getElementById('loadingBar').classList.remove('hidden');
+    toggleUIState(true);
 
     try {
       const params = new URLSearchParams({
@@ -208,20 +220,87 @@
       }
 
     } catch(err) {
-      tampilHasil({ status: 'error', pesan: err.message });
+      tampilHasil({ status: 'error', pesan: 'Gagal menghubungi server. Periksa koneksi.' });
     } finally {
       isProses = false;
-      document.getElementById('btnScan').disabled  = false;
-      document.getElementById('nipInput').disabled = false;
-      document.getElementById('nipInput').classList.replace('border-emerald-300', 'border-slate-200');
-      document.getElementById('btnScanIcon').className = 'fa-solid fa-check text-lg';
-      document.getElementById('loadingBar').classList.add('hidden');
-      document.getElementById('nipInput').value = '';
-      document.getElementById('nipInput').focus();
+      toggleUIState(false);
+      nipInput.value = '';
+      nipInput.focus();
     }
   }
 
-  /* ========== TAMPIL HASIL ========== */
+  /* ========== CARI NAMA (FITUR BARU) ========== */
+  async function cariNama() {
+    const input = document.getElementById('namaSearchInput');
+    const nama = input.value.trim();
+    const list = document.getElementById('listSearch');
+    const btnIcon = document.getElementById('btnCariIcon');
+
+    if (nama.length < 3) {
+      alert('Ketik minimal 3 huruf untuk mencari.');
+      return;
+    }
+
+    list.classList.remove('hidden');
+    list.innerHTML = `<div class="p-4 text-center text-xs font-bold text-slate-400 animate-pulse">Mencari...</div>`;
+    btnIcon.className = 'fa-solid fa-spinner fa-spin';
+
+    try {
+      const params = new URLSearchParams({ action: 'cari_nama', kegiatan: 'DQLP', nama: nama });
+      const r = await fetchWithTimeout(`${PORTAL_API_URL}?${params}`);
+      const j = await r.json();
+
+      list.innerHTML = "";
+      if (!j.hasil || j.hasil.length === 0) {
+        list.innerHTML = `<div class="p-4 text-center text-xs text-rose-500 font-bold">Nama tidak ditemukan.</div>`;
+      } else {
+        j.hasil.forEach(h => {
+          const d = document.createElement("div");
+          d.className = "p-4 hover:bg-emerald-50 cursor-pointer text-xs font-bold text-slate-600 transition-colors flex justify-between items-center";
+          d.innerHTML = `
+            <div>
+              <p class="text-slate-800">${h.nama}</p>
+              <p class="text-[10px] text-slate-400">${h.kode}</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-emerald-300"></i>
+          `;
+          d.onclick = () => {
+            list.classList.add('hidden');
+            input.value = h.nama;
+            // Langsung proses presensi menggunakan NIP (h.kode)
+            prosesScan(h.kode);
+          };
+          list.appendChild(d);
+        });
+      }
+    } catch(err) {
+      list.innerHTML = `<div class="p-4 text-center text-xs text-rose-500 font-bold">Gagal mencari data.</div>`;
+    } finally {
+      btnIcon.className = 'fa-solid fa-magnifying-glass';
+    }
+  }
+
+  /* ========== UTILITY UI ========== */
+  function toggleUIState(loading) {
+    const btn = document.getElementById('btnScan');
+    const nip = document.getElementById('nipInput');
+    const icon = document.getElementById('btnScanIcon');
+    const bar = document.getElementById('loadingBar');
+
+    btn.disabled = loading;
+    nip.disabled = loading;
+    
+    if (loading) {
+      nip.classList.replace('border-slate-200', 'border-emerald-300');
+      icon.className = 'fa-solid fa-spinner fa-spin text-lg';
+      bar.classList.remove('hidden');
+    } else {
+      nip.classList.replace('border-emerald-300', 'border-slate-200');
+      icon.className = 'fa-solid fa-check text-lg';
+      bar.classList.add('hidden');
+    }
+  }
+
   function tampilHasil(j) {
     const box    = document.getElementById('hasilScan');
     const nama   = document.getElementById('hasilNama');
@@ -262,16 +341,12 @@
     }
   }
 
-  /* ========== RENDER LOG ========== */
   function renderLog() {
     const list = document.getElementById('logList');
     document.getElementById('logCount').innerText = logData.length;
 
     if (logData.length === 0) {
-      list.innerHTML = `<div class="p-8 text-center text-slate-300">
-        <i class="fa-solid fa-inbox text-3xl mb-2"></i>
-        <p class="text-xs font-bold">Belum ada presensi</p>
-      </div>`;
+      list.innerHTML = `<div class="p-8 text-center text-slate-300"><i class="fa-solid fa-inbox text-3xl mb-2"></i><p class="text-xs font-bold">Belum ada presensi</p></div>`;
       return;
     }
 
@@ -282,8 +357,8 @@
             ${logData.length - i}
           </div>
           <div>
-            <p class="text-sm font-bold text-slate-700">${l.nama}</p>
-            <p class="text-[10px] text-slate-400 font-bold">${l.skema} · ${l.waktu}</p>
+            <p class="text-sm font-bold text-slate-700">${l.nama || l.nip}</p>
+            <p class="text-[10px] text-slate-400 font-bold">${l.skema || 'Manual'} · ${l.waktu}</p>
           </div>
         </div>
         <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
@@ -302,17 +377,12 @@
     return new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
   }
 
-  /* ========== PROTEKSI (skip mobile) ========== */
-  if (!isMobile) {
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (e.keyCode === 123 ||
-        (e.ctrlKey && e.shiftKey && [73,74,67].includes(e.keyCode)) ||
-        (e.ctrlKey && [85,83,80].includes(e.keyCode))) {
-        e.preventDefault(); return false;
-      }
-    });
-  }
+  // Klik di luar list pencarian untuk menutup
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#listSearch') && !e.target.closest('#namaSearchInput')) {
+      document.getElementById('listSearch').classList.add('hidden');
+    }
+  });
 
   // Init
   loadInfoPeriode();
