@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Kompensasi Presensi - DQLP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background: transparent; font-family: 'Segoe UI', sans-serif; }
+    .btn-blue { background-color: #2563eb; transition: all 0.3s; }
+    .btn-blue:hover { background-color: #1d4ed8; }
+    .btn-blue:disabled { background-color: #93c5fd; cursor: not-allowed; }
+    .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="p-2 md:p-4 bg-slate-50">
+
+  <div class="max-w-xl mx-auto space-y-6">
+
+    <div class="bg-white rounded-2xl p-6 border-l-8 border-blue-600 shadow-lg animate-fadeIn">
+      <h1 class="text-2xl font-bold text-slate-800">Form Kompensasi Presensi</h1>
+      <p class="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-1">Universitas Muhammadiyah Malang</p>
+    </div>
+
+    <div id="pencarianBox" class="bg-white rounded-2xl p-6 shadow-lg animate-fadeIn">
+      <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
+        <p class="text-xs text-blue-800 leading-relaxed font-medium">
+          <i class="fa-solid fa-circle-info mr-1"></i> Form ini khusus untuk peserta yang telah mendapat persetujuan instruktur untuk memasukkan kehadiran di luar jadwal reguler.
+        </p>
+      </div>
+      <label class="block text-lg font-bold text-slate-700 mb-4">Cari Nama Lengkap:</label>
+      <input id="namaCari" type="text"
+        class="w-full px-5 py-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+        placeholder="Ketik minimal 3 huruf..."
+        onkeydown="if(event.key==='Enter') cari()">
+      <button id="btnCari" onclick="cari()"
+        class="w-full btn-blue text-white py-4 rounded-2xl font-bold shadow-lg">
+        CARI DATA
+      </button>
+      <div id="loadingSearch" class="hidden mt-4 border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+        <div class="p-6 flex items-center justify-center gap-3">
+          <div class="loader" style="width:24px;height:24px;border-width:3px"></div>
+          <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">Mencari...</span>
+        </div>
+      </div>
+      <div id="listHasil" class="hidden mt-4 border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm"></div>
+    </div>
+
+    <div id="formSection" class="hidden bg-white rounded-2xl p-8 shadow-lg text-center animate-fadeIn">
+      <h2 class="text-xl font-bold text-slate-800 mb-6">Detail Kompensasi</h2>
+
+      <div class="space-y-3 text-left mb-6 text-sm">
+        <div class="bg-slate-50 p-4 rounded-xl border">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Nama & NIP</p>
+          <p id="txtNama" class="font-bold text-slate-700"></p>
+          <p id="txtNip" class="text-xs text-slate-500 mt-1"></p>
+        </div>
+      </div>
+
+      <div class="text-left space-y-4 mb-6">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pilih Tanggal Pertemuan</label>
+          <input type="date" id="inputTanggal"
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Token Kompensasi</label>
+          <input type="text" id="inputToken" placeholder="Masukkan token dari Admin..." autocomplete="off"
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-bold tracking-widest text-center uppercase">
+        </div>
+      </div>
+
+      <button id="btnSubmit" onclick="prosesKompensasi()"
+        class="w-full btn-blue text-white py-4 rounded-2xl font-bold text-lg shadow-xl mb-4">
+        KONFIRMASI KLAIM
+      </button>
+
+      <button onclick="location.reload()"
+        class="text-slate-400 text-xs font-bold uppercase hover:text-blue-600 mt-2">
+        Batal / Kembali
+      </button>
+    </div>
+
+    <div id="successBox" class="hidden bg-white rounded-2xl p-12 text-center shadow-lg border-t-8 border-blue-600 animate-fadeIn">
+      <i class="fa-solid fa-circle-check text-6xl text-blue-600 mb-6"></i>
+      <h2 class="text-2xl font-bold text-slate-800">Klaim Terekam!</h2>
+      <p class="text-slate-500 mt-2">Data kompensasi Anda telah divalidasi dan masuk ke sistem.</p>
+      <button onclick="location.reload()"
+        class="mt-8 bg-slate-100 px-8 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition-colors">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <div id="notifModal"
+    class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+    <div class="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center border-t-8 border-amber-500 animate-fadeIn">
+      <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+        <i class="fa-solid fa-circle-exclamation text-4xl"></i>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">Informasi</h3>
+      <p id="notifMsg" class="text-slate-500 text-sm leading-relaxed"></p>
+      <button onclick="closeNotif()"
+        class="mt-8 w-full py-4 bg-slate-800 text-white rounded-xl font-bold uppercase text-xs">
+        Mengerti
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // URL GAS TERBARU
+    const API_URL = "https://script.google.com/macros/s/AKfycbwmKZASGzNS6e9qYtOKfDXWDsuhVzPWmYUafXSmhHbDYtv4nvoCyV06ai4nhveXCQwv/exec";
+
+    let userAktif = { nip: '', nama: '' };
+
+    async function fetchWithTimeout(url, ms = 15000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), ms);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(id);
+        return res;
+      } catch (err) {
+        clearTimeout(id);
+        throw err;
+      }
+    }
+
+    function sensorNip(nip) {
+      const s = String(nip);
+      if (s.length <= 6) return s;
+      return s.slice(0, 4) + '•••••' + s.slice(-3);
+    }
+
+    function showNotif(msg) {
+      document.getElementById('notifMsg').innerText = msg;
+      document.getElementById('notifModal').classList.replace('hidden', 'flex');
+    }
+
+    function closeNotif() {
+      document.getElementById('notifModal').classList.replace('flex', 'hidden');
+    }
+
+    async function cari() {
+      const nama = document.getElementById('namaCari').value.trim();
+      if (nama.length < 3) return showNotif('Ketik minimal 3 huruf nama Anda.');
+
+      const list   = document.getElementById('listHasil');
+      const loader = document.getElementById('loadingSearch');
+      const btn    = document.getElementById('btnCari');
+
+      list.innerHTML = '';
+      list.classList.add('hidden');
+      loader.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        const r = await fetchWithTimeout(`${API_URL}?action=cari_nama&nama=${encodeURIComponent(nama)}`);
+        const j = await r.json();
+
+        if (!j.hasil || j.hasil.length === 0) {
+          list.innerHTML = `
+            <div class="p-8 text-center">
+              <p class="text-sm font-bold text-slate-500">Nama tidak ditemukan.</p>
+            </div>`;
+        } else {
+          j.hasil.forEach(item => {
+            const d = document.createElement('div');
+            d.className = 'px-5 py-4 cursor-pointer hover:bg-blue-50 transition-all border-b border-slate-50';
+            d.innerHTML = `<p class="font-bold text-slate-700">${item.nama}</p><p class="text-xs text-slate-400 mt-1">${sensorNip(item.nip)}</p>`;
+            d.onclick = () => pilihPeserta(item);
+            list.appendChild(d);
+          });
+        }
+        list.classList.remove('hidden');
+      } catch (err) {
+        showNotif('Gagal memuat data jaringan.');
+      } finally {
+        loader.classList.add('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    function pilihPeserta(item) {
+      userAktif = item;
+      document.getElementById('pencarianBox').classList.add('hidden');
+      document.getElementById('formSection').classList.remove('hidden');
+      document.getElementById('txtNama').innerText = item.nama;
+      document.getElementById('txtNip').innerText  = sensorNip(item.nip);
+    }
+
+    async function prosesKompensasi() {
+      const tanggal = document.getElementById('inputTanggal').value;
+      const token   = document.getElementById('inputToken').value.trim();
+      const btn     = document.getElementById('btnSubmit');
+
+      if (!tanggal) return showNotif('Mohon pilih tanggal pertemuan terlebih dahulu.');
+      if (!token) return showNotif('Token kompensasi wajib diisi.');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES...';
+
+      try {
+        const params = new URLSearchParams({
+          action  : 'simpan_kompensasi',
+          nip     : userAktif.nip,
+          nama    : userAktif.nama,
+          tanggal : tanggal,
+          kode    : token
+        });
+
+        const s   = await fetchWithTimeout(`${API_URL}?${params.toString()}`);
+        const res = await s.json();
+
+        if (res.status === 'SUCCESS') {
+          document.getElementById('formSection').classList.add('hidden');
+          document.getElementById('successBox').classList.remove('hidden');
+        } else {
+          showNotif(res.pesan || 'Terjadi kesalahan sistem.');
+        }
+      } catch (err) {
+        showNotif('Kesalahan komunikasi dengan server.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'KONFIRMASI KLAIM';
+      }
+    }
+  </script>
+</body>
+</html>
